@@ -1,6 +1,8 @@
 import express from "express";
 import router from "./routes/api";
 import db from "./utils/database";
+import docs from "./docs/route";
+import cors from "cors";
 
 async function startServer() {
   try {
@@ -12,6 +14,7 @@ async function startServer() {
     const app = express();
 
     // Middleware to parse JSON bodies
+    app.use(cors());
     app.use(express.json());
 
     app.get("/", (req, res) => {
@@ -22,7 +25,7 @@ async function startServer() {
     });
     // Use the API routes
     app.use("/api", router);
-
+    docs(app);
     // Start the server
     const PORT = 4000;
     app.listen(PORT, () => {

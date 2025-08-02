@@ -80,6 +80,19 @@ export default {
   },
 
   async login(req: Request, res: Response) {
+    /**
+ #swagger.requestBody = {
+   required: true,
+   content: {
+     "application/json": {
+       schema: {
+         $ref: "#/components/schemas/LoginRequest"
+       }
+     }
+   }
+ }
+ */
+
     const { identifier, password } = req.body as unknown as TyLogin;
 
     try {
@@ -129,6 +142,10 @@ export default {
   },
 
   async me(req: IReqUser, res: Response) {
+    /**
+     * #swagger.security = [{ bearerAuth: [] }]
+     */
+
     try {
       // mengambil data user yang sudah disisipkan oleh middleware auth
       const user = req.user;
