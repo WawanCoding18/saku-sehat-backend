@@ -164,11 +164,11 @@
         "properties": {
           "identifier": {
             "type": "string",
-            "example": "Apis"
+            "example": "any"
           },
           "password": {
             "type": "string",
-            "example": "2345691"
+            "example": "any"
           }
         }
       },

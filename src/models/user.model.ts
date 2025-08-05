@@ -101,6 +101,7 @@ UserSchema.methods.toJSON = function () {
 
   // Remove sensitive fields from the response
   delete userObject.password;
+  delete userObject.activation;
   return userObject;
 };
 

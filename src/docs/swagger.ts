@@ -40,8 +40,8 @@ const doc = {
 
       },
       LoginRequest: {
-        identifier: "Apis",
-        password: "2345691",
+        identifier: "any",
+        password: "any",
       },
       ActivationRequest: {
         code: "abcdfg"
