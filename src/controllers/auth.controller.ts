@@ -25,7 +25,27 @@ const registerSchema = Yup.object({
   fullname: Yup.string().required(),
   username: Yup.string().required(),
   email: Yup.string().email().required(),
-  password: Yup.string().min(6).required(),
+  password: Yup.string()
+    .min(6, "Password must be at least 6 character")
+    .test(
+      "at-least-one-uppercase-letter",
+      "Contains at least one uppercase letter",
+      (value) => {
+        if (!value) return false;
+        const regex = /^(?=.*[A-Z])/;
+        return regex.test(value);
+      }
+    )
+    .test(
+      "at-least-number-letter",
+      "Contains at least one uppercase letter",
+      (value) => {
+        if (!value) return false;
+        const regex = /^(?=.*\d)/;
+        return regex.test(value);
+      }
+    )
+    .required(),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password"), ""], "Passwords must match")
     .required(),
@@ -34,6 +54,21 @@ const registerSchema = Yup.object({
 //membuat controller untuk register,login dan me dengan export default
 export default {
   async register(req: Request, res: Response) {
+    /*
+    #swagger.tags = ['Auth']
+    #swagger.description = 'Register a new user'
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/RegisterRequest"
+          }
+        }
+      }
+    }
+  */
+
     const body = req.body as unknown as TyRegister;
 
     // Validasi jika body kosong
@@ -81,6 +116,8 @@ export default {
 
   async login(req: Request, res: Response) {
     /**
+ #swagger.tags = ['Auth']
+ #swagger.description = 'Login User'
  #swagger.requestBody = {
    required: true,
    content: {
@@ -98,7 +135,16 @@ export default {
     try {
       //Mengidentifikasi user mengisi berdasarkan username atau email
       const userByIndentifier = await UserModel.findOne({
-        $or: [{ username: identifier }, { email: identifier }],
+        $or: [
+          { username: identifier 
+
+          },{
+            
+            email: identifier 
+
+          }],
+
+          isActive: true
       });
 
       // Jika user tidak ditemukan
@@ -143,7 +189,8 @@ export default {
 
   async me(req: IReqUser, res: Response) {
     /**
-     * #swagger.security = [{ bearerAuth: [] }]
+      #swagger.tags = ['Auth']
+      #swagger.security = [{ bearerAuth: [] }]
      */
 
     try {
@@ -166,11 +213,48 @@ export default {
       });
     }
   },
-};
 
-// dummy(req: Request, res: Response) {
-//   res.status(200).json({
-//     message: "Success hit endpoint /dummy",
-//     data: "OK",
-//   });
-// }
+  async activation(req: Request, res: Response) {
+    /*
+    #swagger.tags = ['Auth']
+    #swagger.description = 'Activation Code'
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {
+            $ref: "#/components/schemas/ActivationRequest"
+          }
+        }
+      }
+    }
+  */
+    try {
+      const { code } = req.body as { code: string };
+
+      const user = await UserModel.findOneAndUpdate(
+        {
+          activation: code,
+        },
+        {
+          isActive: true,
+        },
+        {
+          new: true,
+        }
+      );
+
+      res.status(200).json({
+        message: "User Successfully activated ",
+        data: user,
+      });
+    } catch (error) {
+      const err = error as unknown as Error;
+      res.status(400).json({
+        message: "Login failed",
+        error: err.message,
+        data: null,
+      });
+    }
+  },
+};

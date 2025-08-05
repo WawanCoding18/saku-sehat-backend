@@ -18,7 +18,10 @@
   "paths": {
     "/auth/register": {
       "post": {
-        "description": "",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Register a new user",
         "parameters": [],
         "responses": {
           "200": {
@@ -27,12 +30,25 @@
           "400": {
             "description": "Bad Request"
           }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
         }
       }
     },
     "/auth/login": {
       "post": {
-        "description": "",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Login User",
         "parameters": [],
         "responses": {
           "200": {
@@ -59,6 +75,9 @@
     },
     "/auth/me": {
       "get": {
+        "tags": [
+          "Auth"
+        ],
         "description": "",
         "parameters": [],
         "responses": {
@@ -78,6 +97,33 @@
           }
         ]
       }
+    },
+    "/auth/activation": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "description": "Activation Code",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -88,6 +134,31 @@
       }
     },
     "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "fullname": {
+            "type": "string",
+            "example": "any"
+          },
+          "username": {
+            "type": "string",
+            "example": "any"
+          },
+          "email": {
+            "type": "string",
+            "example": "any"
+          },
+          "password": {
+            "type": "string",
+            "example": "any"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "example": "any"
+          }
+        }
+      },
       "LoginRequest": {
         "type": "object",
         "properties": {
@@ -98,6 +169,15 @@
           "password": {
             "type": "string",
             "example": "2345691"
+          }
+        }
+      },
+      "ActivationRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "abcdfg"
           }
         }
       }

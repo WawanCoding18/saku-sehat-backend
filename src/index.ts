@@ -13,7 +13,7 @@ async function startServer() {
     // Create an Express application
     const app = express();
 
-    // Middleware to parse JSON bodies
+    // Middleware to parse JSON bodies and cors
     app.use(cors());
     app.use(express.json());
 
@@ -25,6 +25,8 @@ async function startServer() {
     });
     // Use the API routes
     app.use("/api", router);
+
+    //call fucntion with params app from route to swaggerUI
     docs(app);
     // Start the server
     const PORT = 4000;
