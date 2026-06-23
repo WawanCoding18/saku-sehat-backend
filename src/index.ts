@@ -14,7 +14,7 @@ async function startServer() {
     const app = express();
 
     // Middleware to parse JSON bodies and cors
-    app.use(cors());
+    app.use(cors({ origin: "http://localhost:3000", credentials: true }));
     app.use(express.json());
 
     app.get("/", (req, res) => {

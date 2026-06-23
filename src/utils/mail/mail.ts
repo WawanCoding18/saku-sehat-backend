@@ -11,7 +11,7 @@ import SMTPTransport from "nodemailer/lib/smtp-transport";
 import ejs from "ejs";
 import path from "path";
 
-// Only use host, not service
+//what data want to send to email use tools nodemailer
 const transport = nodemailer.createTransport({
   host: EMAIL_SMTP_HOST,
   port: EMAIL_SMTP_PORT,
@@ -23,6 +23,7 @@ const transport = nodemailer.createTransport({
   requireTLS: true,
 } as SMTPTransport.Options);
 
+//export interface isenMail to casting sendMail data
 export interface IsendMail {
   from: string;
   to: string;
@@ -30,6 +31,7 @@ export interface IsendMail {
   html: string;
 }
 
+//send to email with there are sendMail like from who, to who, subject, and content
 export const sendMail = async ({ ...emailparams }: IsendMail) => {
   const result = await transport.sendMail({
     ...emailparams,
@@ -38,6 +40,7 @@ export const sendMail = async ({ ...emailparams }: IsendMail) => {
   return result;
 };
 
+//render email when email while sending
 export const renderMailHtml = async (template: string, data: any): Promise<string> => {
   const content = await ejs.renderFile(
     path.join(__dirname, `templates/${template}`),

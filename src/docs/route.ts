@@ -4,9 +4,9 @@ import SwaggerOutput from "./swagger_output.json";
 import fs from "fs";
 import path from "path";
 
-//Mengesport kan Swagger UI ke index.ts
+//Exporting Swagger UI to index.ts
 export default function docs(app: Express) {
-  //Membaca filesystem untuk mendapatkan path dari swagger-ui.css
+  //Read the filesystem to get the path of swagger-ui.css
   const css = fs.readFileSync(
     path.resolve(
       __dirname,
@@ -15,7 +15,7 @@ export default function docs(app: Express) {
     "utf-8"
   );
 
-  //middleware untuk mengesport Swagger UI dari swagger_ouput.json dan ui css nya dari swagger-ui.css
+  //middleware to export Swagger UI from swagger_ouput.json and its ui css from swagger-ui.css
   app.use(
     "/api-docs",
     SwaggerUI.serve,

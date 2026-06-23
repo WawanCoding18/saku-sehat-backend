@@ -13,7 +13,7 @@ export interface IUserToken
     | "password"
     | "email"
     | "username"
-    | "fullname"
+    | "fullName"
   > {
   // The MongoDB ObjectId (user._id) will be included in the token
   id?: Types.ObjectId;

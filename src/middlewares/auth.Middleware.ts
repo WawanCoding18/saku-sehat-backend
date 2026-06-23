@@ -2,17 +2,17 @@ import { NextFunction, Request, Response } from "express";
 import { IUserToken } from "../utils/jwt";
 import { generateUser } from "../utils/jwt";
 
-// Memperluas tipe bawaan Request agar bisa menyimpan data user hasil verifikasi token
+// Extend the default Request type to store user data resulting from token verification
 export interface IReqUser extends Request {
   user?: IUserToken;
 }
 
-// Middleware untuk memverifikasi token dan mengambil data user dari token
+// Middleware to verify token and retrieve user data from token
 export default (req: Request, res: Response, next: NextFunction) => {
-  // Mengambil isi header Authorization (misalnya: "Bearer eyJhbGciOi...")
+  // Get the contents of the Authorization header (e.g.: "Bearer eyJhbGciOi...")
   const authorization = req.headers?.authorization;
 
-  // Jika header Authorization tidak ada
+  // If Authorization header is missing
   if (!authorization) {
     return res.status(403).json({
       message: "unauthorized no token",
@@ -20,10 +20,10 @@ export default (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  // Memisahkan prefix "Bearer" dan token-nya (dipisah dengan spasi)
+  // Separate the "Bearer" prefix and its tokens (separated by spaces
   const [prefix, accessToken] = authorization.split(" ");
 
-  // Jika format tidak sesuai: harus "Bearer <token>"
+  // If format is not correct: must be "Bearer <token>"
   if (!(prefix === "Bearer" && accessToken)) {
     return res.status(403).json({
       message: "unauthorized wrong format",
@@ -31,10 +31,10 @@ export default (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  // Decode dan verifikasi token untuk mendapatkan data user dari payload JWT
+  // Decode and verify the token to get user data from the JWT payload
   const user = generateUser(accessToken);
 
-  // Jika token tidak valid atau gagal diverifikasi
+  // If the token is invalid or fails to verify
   if (!user) {
     return res.status(403).json({
       message: "unauthorized invalid user",
@@ -42,9 +42,9 @@ export default (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
-  // Simpan data user hasil verifikasi ke dalam request (agar bisa diakses di controller)
+  // Save the verified user data into the request (so it can be accessed in the controller)
   (req as IReqUser).user = user;
 
-  // Lanjut ke controller berikutnya (misalnya ke authController.me)
+  // Continue to the next controller (e.g. to authController.me)
   next();
 };

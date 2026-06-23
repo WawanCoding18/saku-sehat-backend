@@ -1,12 +1,14 @@
 import swaggerAutogen from "swagger-autogen";
 
-//Swagger membaca file swagger.json dan mengenerate kode API
+//Swagger reads the swagger.json file and generates the API code
 const outputFile = "./swagger_output.json";
-//Untuk endpoint saat buka swaggerUI
+
+//For endpoint when opening swaggerUI
 const endpointsFiles = [__dirname + "/../routes/api.ts"];
 console.log("Resolved path: ", __dirname + "/../routes/api.ts");
 
-//Dokumentasi API terdiri dari info, server, authorization, dan scheme login request
+//API documentation consists of info, server, authorization, and register, login, activation account
+//request scheme
 const doc = {
   info: {
     version: "1.0.0",
@@ -32,23 +34,22 @@ const doc = {
     },
     schemas: {
       RegisterRequest: {
-        fullname:"any",
+        fullname: "any",
         username: "any",
         email: "any",
         password: "any",
-        confirmPassword:"any"
-
+        confirmPassword: "any",
       },
       LoginRequest: {
         identifier: "any",
         password: "any",
       },
       ActivationRequest: {
-        code: "abcdfg"
+        code: "abcdfg",
       },
     },
   },
 };
 
-//Menampilkan Dokumentasi API lewat Swagger UI
+//Display API Documentation via Swagger UI
 swaggerAutogen({ openapi: "3.0.0" })(outputFile, endpointsFiles, doc);

@@ -3,9 +3,9 @@ import { encrypt } from "../utils/Encryption";
 import { CLIENT_HOST, EMAIL_SMTP_USER } from "../utils/env";
 import { renderMailHtml, sendMail } from "../utils/mail/mail";
 
-//export interface UserDocument extends mongoose.Document {
+//export interface UserDocument extends mongoose.Document 
 export interface User {
-  fullname: string;
+  fullName: string;
   username: string;
   email: string;
   password: string;
@@ -19,7 +19,7 @@ export interface User {
 // This schema defines the structure of the User document in MongoDB
 const UserSchema = new mongoose.Schema<User>(
   {
-    fullname: {
+    fullName: {
       type: String,
       required: true,
     },
@@ -58,20 +58,22 @@ const UserSchema = new mongoose.Schema<User>(
   }
 );
 
+//save all data to email 
 UserSchema.post("save", async function (doc, next) {
   try {
     const user = doc;
 
     console.log("Send Email to", user);
-
+    //render data email with ejs for appear at html 
     const contentMail = await renderMailHtml("registerasion-success.ejs", {
       username: user.username,
-      fullname: user.fullname,
+      fullName: user.fullName,
       email: user.email,
       createdAt: user.createdAt,
-      activationLink: `${CLIENT_HOST}/auth/activecode?code=${user.activation}`,
+      activationLink: `${CLIENT_HOST}/auth/activation?code=${user.activation}`,
     });
-
+    
+    //for sending email 
     await sendMail({
       from: EMAIL_SMTP_USER,
       to: user.email,

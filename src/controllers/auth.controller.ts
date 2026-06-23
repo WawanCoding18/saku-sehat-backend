@@ -5,24 +5,24 @@ import { encrypt } from "../utils/Encryption";
 import { generateToken } from "../utils/jwt";
 import { IReqUser } from "../middlewares/auth.Middleware";
 
-//membuat type untuk register
+//create a type for register
 type TyRegister = {
-  fullname: string;
+  fullName: string;
   username: string;
   email: string;
   password: string;
   confirmPassword: string;
 };
 
-//membuat type untuk login
+//create type for login
 type TyLogin = {
   identifier: string;
   password: string;
 };
 
-//membuat schema untuk validasi register pake yup
+//create a schema for register validation using yup
 const registerSchema = Yup.object({
-  fullname: Yup.string().required(),
+  fullName: Yup.string().required(),
   username: Yup.string().required(),
   email: Yup.string().email().required(),
   password: Yup.string()
@@ -51,7 +51,7 @@ const registerSchema = Yup.object({
     .required(),
 });
 
-//membuat controller untuk register,login dan me dengan export default
+//create controller for register, login, me, and activation with default export
 export default {
   async register(req: Request, res: Response) {
     /*
@@ -71,7 +71,7 @@ export default {
 
     const body = req.body as unknown as TyRegister;
 
-    // Validasi jika body kosong
+    // Validate if body is empty
     if (!body || Object.keys(body).length === 0) {
       return res.status(400).json({
         message: "Request body is missing",
@@ -80,21 +80,21 @@ export default {
       });
     }
 
-    const { fullname, username, email, password, confirmPassword } = body;
+    const { fullName, username, email, password, confirmPassword } = body;
 
     try {
-      // Validasi dengan schema Yup
+      // Validate with schema Yup
       await registerSchema.validate({
-        fullname,
+        fullName,
         username,
         email,
         password,
         confirmPassword,
       });
 
-      //memanggil model UserModel untuk membuat user baru
+      //call the UserModel model to create a new user
       const result = await UserModel.create({
-        fullname,
+        fullName,
         username,
         email,
         password,
@@ -133,21 +133,19 @@ export default {
     const { identifier, password } = req.body as unknown as TyLogin;
 
     try {
-      //Mengidentifikasi user mengisi berdasarkan username atau email
+      //Identify user filling based on username or emai
       const userByIndentifier = await UserModel.findOne({
         $or: [
-          { username: identifier 
+          { username: identifier },
+          {
+            email: identifier,
+          },
+        ],
 
-          },{
-            
-            email: identifier 
-
-          }],
-
-          isActive: true
+        isActive: true,
       });
 
-      // Jika user tidak ditemukan
+      // If user is not found
       if (!userByIndentifier) {
         return res.status(403).json({
           message: "User not found",
@@ -155,11 +153,11 @@ export default {
         });
       }
 
-      // Validasi password harus sesuai dengan pasword yang terenkripsi
+      // Password validation must match the encrypted password
       const validPassword: boolean =
         encrypt(password) === userByIndentifier.password;
 
-      // Jika password tidak sesuai
+      // If the password does not match
       if (!validPassword) {
         return res.status(403).json({
           message: "Password Error",
@@ -194,10 +192,10 @@ export default {
      */
 
     try {
-      // mengambil data user yang sudah disisipkan oleh middleware auth
+      // retrieve user data that has been inserted by the auth middleware
       const user = req.user;
 
-      // mencari data user di database berdasarkan id dari token
+      // search for user data in the database based on the id from the token
       const result = await UserModel.findById(user?.id);
 
       res.status(200).json({
@@ -230,16 +228,20 @@ export default {
     }
   */
     try {
+      //	Get the activation code from frontend
       const { code } = req.body as { code: string };
 
       const user = await UserModel.findOneAndUpdate(
         {
+          //Find user with that activation code
           activation: code,
         },
         {
+          //Update user to be active.
           isActive: true,
         },
         {
+          //Get the updated user (after activation) as a result.
           new: true,
         }
       );
