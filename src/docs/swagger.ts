@@ -21,7 +21,7 @@ const doc = {
       description: "Local Server",
     },
     {
-      url: "https://back-end-event-phi.vercel.app/api",
+      url: "https://saku-sehat-backend.vercel.app/api",
       description: "Deploy Server",
     },
   ],
