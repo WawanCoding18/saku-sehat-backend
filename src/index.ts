@@ -42,6 +42,46 @@
 // module.exports = app;
 
 
+// import express from "express";
+// import router from "./routes/api";
+// import db from "./utils/database";
+// import docs from "./docs/route";
+// import cors from "cors";
+
+// const app = express();
+
+
+// app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+// app.use(express.json());
+
+// app.get("/", (req, res) => {
+//   res.status(200).json({
+//     message: "Server running",
+//     data: null,
+//   });
+// });
+
+// app.use("/api", router);
+// docs(app);
+
+
+// db().then((conn) => {
+//   console.log("DB Connected:", conn);
+// }).catch((err) => {
+//   console.error("DB Error:", err);
+// });
+
+
+// if (process.env.NODE_ENV !== "production") {
+//   app.listen(4000, () => {
+//     console.log("Server running on port 4000");
+//   });
+// }
+
+
+// export default app;
+
+
 import express from "express";
 import router from "./routes/api";
 import db from "./utils/database";
@@ -50,8 +90,10 @@ import cors from "cors";
 
 const app = express();
 
-
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ 
+  origin: ["http://localhost:3000", "https://front-end-acara-rho-teal.vercel.app"], 
+  credentials: true 
+}));
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -64,19 +106,16 @@ app.get("/", (req, res) => {
 app.use("/api", router);
 docs(app);
 
-
 db().then((conn) => {
   console.log("DB Connected:", conn);
 }).catch((err) => {
   console.error("DB Error:", err);
 });
 
-
 if (process.env.NODE_ENV !== "production") {
   app.listen(4000, () => {
     console.log("Server running on port 4000");
   });
 }
-
 
 export default app;
