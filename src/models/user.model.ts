@@ -1,9 +1,6 @@
 import mongoose from "mongoose";
 import { encrypt } from "../utils/Encryption";
-import { CLIENT_HOST, EMAIL_SMTP_USER } from "../utils/env";
-import { renderMailHtml, sendMail } from "../utils/mail/mail";
 
-//export interface UserDocument extends mongoose.Document 
 export interface User {
   fullName: string;
   username: string;
@@ -12,11 +9,11 @@ export interface User {
   role: string;
   profilePicture: string;
   isActive: boolean;
-  activation: string;
+  otpCode: string | null;
+  otpExpiresAt: Date | null;
   createdAt?: string;
 }
 
-// This schema defines the structure of the User document in MongoDB
 const UserSchema = new mongoose.Schema<User>(
   {
     fullName: {
@@ -49,8 +46,13 @@ const UserSchema = new mongoose.Schema<User>(
       type: Boolean,
       default: false,
     },
-    activation: {
+    otpCode: {
       type: String,
+      default: null,
+    },
+    otpExpiresAt: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -58,56 +60,31 @@ const UserSchema = new mongoose.Schema<User>(
   }
 );
 
-//save all data to email 
-UserSchema.post("save", async function (doc, next) {
-  try {
-    const user = doc;
-
-    console.log("Send Email to", user);
-    //render data email with ejs for appear at html 
-    const contentMail = await renderMailHtml("registerasion-success.ejs", {
-      username: user.username,
-      fullName: user.fullName,
-      email: user.email,
-      createdAt: user.createdAt,
-      activationLink: `${CLIENT_HOST}/auth/activation?code=${user.activation}`,
-    });
-    
-    //for sending email 
-    await sendMail({
-      from: EMAIL_SMTP_USER,
-      to: user.email,
-      subject: "Activation Account",
-      html: contentMail,
-    });
-  } catch (error) {
-    console.error("Email sending error:", error);
-  } finally {
-    next();
-  }
-});
-
-
-// Pre-save hook to encrypt the password before saving to the database
+// Pre-save hook — hanya encrypt password
+// Hapus bagian activation, OTP di-generate di controller
 UserSchema.pre("save", function (next) {
   const user = this;
-  user.password = encrypt(user.password);
-  user.activation = encrypt(user.id);
+
+  // Hanya encrypt kalau password baru / diubah
+  // supaya tidak di-encrypt dua kali
+  if (user.isModified("password")) {
+    user.password = encrypt(user.password);
+  }
+
   next();
 });
 
-//  hidden password field from the response
+// Sembunyikan field sensitif dari response
 UserSchema.methods.toJSON = function () {
   const user = this;
   const userObject = user.toObject();
 
-  // Remove sensitive fields from the response
   delete userObject.password;
-  delete userObject.activation;
+  delete userObject.otpCode;      
+  delete userObject.otpExpiresAt;
   return userObject;
 };
 
-// Create the User model using the schema
 const UserModel = mongoose.model<User>("User", UserSchema);
 
 export default UserModel;

@@ -8,6 +8,7 @@ const router = express.Router();
 router.post("/auth/register", authController.register);
 router.post("/auth/login", authController.login);
 router.get("/auth/me", authMiddleware ,authController.me);
-router.post("/auth/activation", authController.activation); //endpoint
+router.post("/auth/verify-otp", authController.verifyOTP); //endpoint
+router.post("/auth/resend-otp", authController.resendOTP); //endpoint
 
 export default router;
