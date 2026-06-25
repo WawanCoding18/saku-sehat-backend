@@ -75,7 +75,7 @@ export const sendOTPEmail = async (
   otpCode: string
 ): Promise<void> => {
   await transporter.sendMail({
-    from: `"Acara App" <${EMAIL_FROM}>`,
+    from: `"Saku Sehat App" <${EMAIL_FROM}>`,
     to: toEmail,
     subject: "Kode OTP Verifikasi Akun Kamu",
     html: `

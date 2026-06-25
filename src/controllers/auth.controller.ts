@@ -371,7 +371,7 @@ export default {
           await sendOTPEmail(email, fullName, otpCode);
 
           return res.status(200).json({
-            message: "Registration updated. Please check your email for the new OTP code.",
+            message: "Registration successful. Please check your email for the new OTP code.",
             data: { email },
           });
         }
