@@ -4,7 +4,7 @@ import UserModel from "../models/user.model";
 import { encrypt } from "../utils/Encryption";
 import { generateToken } from "../utils/jwt";
 import { IReqUser } from "../middlewares/auth.Middleware";
-
+import connect from "../utils/database";
 //create a type for register
 type TyRegister = {
   fullName: string;
@@ -67,7 +67,7 @@ export default {
         }
       }
     }
-  */
+  */await connect();
 
     const body = req.body as unknown as TyRegister;
 
@@ -129,7 +129,7 @@ export default {
    }
  }
  */
-
+    await connect();
     const { identifier, password } = req.body as unknown as TyLogin;
 
     try {
@@ -190,7 +190,7 @@ export default {
       #swagger.tags = ['Auth']
       #swagger.security = [{ bearerAuth: [] }]
      */
-
+    await connect();
     try {
       // retrieve user data that has been inserted by the auth middleware
       const user = req.user;
@@ -226,7 +226,7 @@ export default {
         }
       }
     }
-  */
+  */ await connect();
     try {
       //	Get the activation code from frontend
       const { code } = req.body as { code: string };
