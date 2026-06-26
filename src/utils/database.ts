@@ -42,7 +42,7 @@ const connect = async () => {
   // Kalau belum ada promise koneksi, buat baru
   if (!cached.promise) {
     cached.promise = mongoose.connect(DATABASE_URL, {
-      dbName: "db-acara",
+      dbName: "db-saku-sehat",
       // Ini penting buat serverless environment
       bufferCommands: false,
     }).then((mongooseInstance) => mongooseInstance);
