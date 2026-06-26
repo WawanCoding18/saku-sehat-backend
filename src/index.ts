@@ -91,7 +91,7 @@ import cors from "cors";
 const app = express();
 
 app.use(cors({ 
-  origin: ["http://localhost:3000", "https://front-end-event-6bn4.vercel.app"], 
+  origin: ["http://localhost:3000", "https://saku-sehat-frontends.vercel.app"], 
   credentials: true 
 }));
 app.use(express.json());
