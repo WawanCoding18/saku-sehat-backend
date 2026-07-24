@@ -109,7 +109,7 @@ app.use("/api/transaksi", transaksiRoute);
 docs(app);
 
 db().then((conn) => {
-  console.log("DB Connected:", conn);
+  console.log("DB Connected");
 }).catch((err) => {
   console.error("DB Error:", err);
 });

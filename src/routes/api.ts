@@ -8,6 +8,9 @@ import {
   updateTransaksi,
   deleteTransaksi,
 } from "../controllers/transaksi.controller";
+import { upload } from "../middlewares/upload.Middleware"
+import { handleOcrUpload } from "../controllers/chat.controller";
+
 
 const router = express.Router();
 
@@ -23,5 +26,7 @@ router.get("/", getAllTransaksi);
 router.get("/:id", getTransaksiById);
 router.put("/:id", updateTransaksi);
 router.delete("/:id", deleteTransaksi);
+//scan OCR
+router.post('/scan', upload.single('image'), handleOcrUpload)
 
 export default router;
