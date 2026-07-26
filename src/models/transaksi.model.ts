@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 export interface Transaksi {
-//   user: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
   tipe: "pengeluaran" | "pemasukan";
   kategori: string;
   namaMerchant: string;
@@ -12,11 +12,11 @@ export interface Transaksi {
 
 const TransaksiSchema = new mongoose.Schema<Transaksi>(
   {
-    // user: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "User",
-    //   required: true,
-    // },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     tipe: {
       type: String,
       enum: ["pengeluaran", "pemasukan"],
