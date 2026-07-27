@@ -3,21 +3,19 @@ import { aiConfig } from "../utils/config/ai.config";
 import { GoogleGenAI, Type } from "@google/genai";
 import { getFullSystemInstruction } from "../utils/prompts";
 
-// Client khusus Teks (menggunakan API Key dari config)
+
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
 
-// ==== 1. STREAM GEMINI TEKS ====
+//STREAM Gemini teks
 export const streamGemini = async (
   message: string,
   res: any
 ): Promise<void> => {
-  // Ambil system instruction dinamis yang sudah ter-inject tanggal server hari ini
   const dynamicSystemInstruction = getFullSystemInstruction();
 
   const userMsgLength = message?.length || 0;
   const systemPromptLength = dynamicSystemInstruction?.length || 0;
 
-  // 🔍 [DEBUG DATA TEXT]
   const totalChars = userMsgLength + systemPromptLength;
   const estimatedTokens = Math.ceil(totalChars / 3.5);
 
@@ -35,7 +33,7 @@ export const streamGemini = async (
     config: {
       systemInstruction: dynamicSystemInstruction,
       responseMimeType: "application/json",
-      // 🔒 Mengunci struktur output dengan Schema bawaan SDK Gemini
+
       responseSchema: {
         type: Type.OBJECT,
         properties: {
@@ -45,7 +43,7 @@ export const streamGemini = async (
           },
           kategori: { 
             type: Type.STRING,
-            enum: ["Hiburan", "Makanan", "Transportasi", "Belanja", "Tagihan", "Kesehatan", "Gaji", "Lainnya"]
+            enum: ["Hiburan", "Makanan dan Minuman", "Transportasi", "Belanja", "Tagihan", "Kesehatan", "Gaji", "Lainnya"]
           },
           namaMerchant: { 
             type: Type.STRING,
@@ -62,7 +60,7 @@ export const streamGemini = async (
         },
         required: ["tipe", "kategori", "namaMerchant", "nominal", "tanggal"],
       },
-      temperature: 0.0, // 👈 Zero temperature agar AI tidak halusinasi
+      temperature: 0.0,
       maxOutputTokens: 2048,
     },
   });

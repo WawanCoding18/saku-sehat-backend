@@ -1,12 +1,7 @@
-// 📄 File: src/services/groq.services.ts
-
 import { aiConfig } from "../utils/config/ai.config";
 import { FULL_SYSTEM_INSTRUCTION } from "../utils/prompts";
 
-
-/**
- * 1. STREAM KHUSUS TEKS (PESAN CHAT)
- */
+//  1. STREAM Groq text
 export const streamGroq = async (
   message: string,
   res: any
@@ -16,7 +11,6 @@ export const streamGroq = async (
   const userMsgLength = message?.length || 0;
   const systemPromptLength = FULL_SYSTEM_INSTRUCTION?.length || 0;
 
-  // 🔍 [DEBUG DATA TEXT]
   const totalChars = userMsgLength + systemPromptLength;
   const estimatedTokens = Math.ceil(totalChars / 3.5);
 
@@ -31,11 +25,11 @@ export const streamGroq = async (
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${aiConfig.groq.apiKey}`, // 👈 API Key Teks
+      Authorization: `Bearer ${aiConfig.groq.apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: aiConfig.groq.model, // 👈 Model Teks
+      model: aiConfig.groq.model,
       messages: [
         {
           role: "system",
@@ -98,7 +92,7 @@ export const streamGroq = async (
         );
         hasReceivedContent = true;
       } catch (e) {
-        // abaikan chunk parsial
+    
       }
     }
   }

@@ -19,6 +19,6 @@ export const aiConfig = {
 };
 
 
-// Daftar provider yang dipakai bergantian
+//provider AI yang dipakai secara bergantian
 export const AI_PROVIDERS = ["gemini", "groq"] as const;
 export type AIProvider = (typeof AI_PROVIDERS)[number];

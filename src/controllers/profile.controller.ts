@@ -3,7 +3,7 @@ import ProfileModel from "../models/profile.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import UserModel  from "../models/user.model";
 
-// 📋 GET ALL TRANSAKSI (Hanya milik user yang sedang login)
+//nambah profile
 export const postProfile = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -28,6 +28,7 @@ export const postProfile = async (req: IReqUser, res: Response) => {
   }
 };
 
+//menerima data profile
 export const getProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
@@ -54,6 +55,7 @@ export const getProfile = async (req: Request, res: Response) => {
   }
 };
 
+//update data profile
 export const updateProfile = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -62,10 +64,10 @@ export const updateProfile = async (req: IReqUser, res: Response) => {
       return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    // 1. Ambil HANYA field yang diizinkan untuk diubah
+   
     const { username, fullName, fotoProfilUrl, sumberPemasukan } = req.body;
 
-    // 2. Update UserModel (hanya username & fullName)
+    //Update UserModel hanya username & fullName aja
     if (username || fullName) {
       await UserModel.findByIdAndUpdate(
         userId,
@@ -77,12 +79,12 @@ export const updateProfile = async (req: IReqUser, res: Response) => {
       );
     }
 
-    // 3. Susun payload khusus ProfileModel (hanya fotoProfilUrl & sumberPemasukan)
+    //Susun payload khusus ProfileModel hanya fotoProfilUrl & sumberPemasukan saja
     const updateDataProfile: Record<string, any> = {};
     if (fotoProfilUrl !== undefined) updateDataProfile.fotoProfilUrl = fotoProfilUrl;
     if (sumberPemasukan !== undefined) updateDataProfile.sumberPemasukan = sumberPemasukan;
 
-    // 4. Update ProfileModel (🛠️ DIUBAH: Cukup cari berdasarkan { user: userId })
+   //update berdasarkan id yang sedang login
     const profile = await ProfileModel.findOneAndUpdate(
       { user: userId },
       updateDataProfile,

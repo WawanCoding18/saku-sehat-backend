@@ -2,7 +2,7 @@ import { Response } from "express";
 import TransaksiModel from "../models/transaksi.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 
-// 📝 CREATE TRANSAKSI
+//nambah transaksi
 export const createTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -29,12 +29,11 @@ export const createTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 📋 GET ALL TRANSAKSI (Hanya milik user yang sedang login)
+//dapat semua data transaksi
 export const getAllTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
 
-    // 🔒 Filter wajib: user: userId
     const transaksi = await TransaksiModel.find({ user: userId }).sort({ tanggal: -1 });
 
     return res.status(200).json({ data: transaksi });
@@ -43,12 +42,11 @@ export const getAllTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🔍 GET TRANSAKSI BY ID
+//dapat data transaksi berdasarkan id
 export const getTransaksiById = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
 
-    // 🔒 Cari berdasarkan ID transaksi DAN ID user
     const transaksi = await TransaksiModel.findOne({ _id: req.params.id, user: userId });
 
     if (!transaksi) {
@@ -61,12 +59,11 @@ export const getTransaksiById = async (req: IReqUser, res: Response) => {
   }
 };
 
-// ✏️ UPDATE TRANSAKSI
+//update transaksi
 export const updateTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
 
-    // 🔒 Gunakan findOneAndUpdate agar user lain tidak bisa mengedit transaksi milik orang lain
     const transaksi = await TransaksiModel.findOneAndUpdate(
       { _id: req.params.id, user: userId },
       req.body,
@@ -83,12 +80,11 @@ export const updateTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🗑️ DELETE TRANSAKSI
+//hapus transaksi
 export const deleteTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
 
-    // 🔒 Gunakan findOneAndDelete
     const transaksi = await TransaksiModel.findOneAndDelete({ _id: req.params.id, user: userId });
 
     if (!transaksi) {

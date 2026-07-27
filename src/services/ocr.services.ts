@@ -5,7 +5,6 @@ let workerInstance: Worker | null = null;
 
 const getWorker = async (): Promise<Worker> => {
   if (!workerInstance) {
-    // 💡 Pakai gabungan Bahasa Indonesia + Inggris untuk istilah kasir/struk
     workerInstance = await createWorker(["ind", "eng"]);
   }
   return workerInstance;
@@ -16,9 +15,9 @@ export const scanText = async (
 ): Promise<string> => {
   const startTime = performance.now();
 
-  // 1. Preprocessing dengan Sharp
+  // 1. Kostumisasi dengan Sharp
   const processedBuffer = await sharp(imageBuffer)
-    .rotate() // 👈 SANGAT KRUSIAL: Auto-rotate berdasarkan EXIF kamera HP!
+    .rotate() 
     .resize({ 
       width: 1800, 
       fit: 'inside', 
@@ -29,11 +28,10 @@ export const scanText = async (
     .normalize()
     .toBuffer();
 
-  // 2. Jalankan Tesseract
+  // 2. Jalankan fungsi dari Tesseract
   const worker = await getWorker();
   
   await worker.setParameters({
-    // 💡 PSM 6 (SINGLE_BLOCK) atau 4 (SINGLE_COLUMN) sangat cocok untuk layout struk
     tessedit_pageseg_mode: PSM.SINGLE_BLOCK, 
   });
 

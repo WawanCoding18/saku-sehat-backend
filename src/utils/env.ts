@@ -1,9 +1,8 @@
 import dotenv from 'dotenv';
 
-//load .env file
+
 dotenv.config();
 
-//for export database_url, key encrypt, and email smtp
 export const DATABASE_URL: string = process.env.DATABASE_URL || '';
 export const SECRET: string = process.env.SECRET || '';
 export const EMAIL_FROM: string = process.env.EMAIL_FROM || '';

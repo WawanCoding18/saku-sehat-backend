@@ -3,20 +3,15 @@ import { streamGemini } from "./gemini.services";
 import { streamGroq } from "./groq.services";
 import { performance } from "perf_hooks";
 
-// ==== Config & Provider Teks ====
+
 let currentProviderIndex = 0;
 const providers = Object.keys(aiConfig) as Array<keyof typeof aiConfig>;
 
-
-
-// ==== 1. Tipe Data Fungsi Stream ====
 type StreamFunction = (
   message: string,
   res: any,
 ) => Promise<void>;
 
-
-// ==== 2. Mapping Fungsi Stream (Teks vs Gambar) ====
 const streamFunctions: Record<keyof typeof aiConfig, StreamFunction> = {
   gemini: streamGemini,
   groq: streamGroq,
@@ -24,7 +19,7 @@ const streamFunctions: Record<keyof typeof aiConfig, StreamFunction> = {
 
 let validResult: any;
 
-// ==== 4. Attempt Provider: TEKS ====
+//Provider Teks
 const attemptProvider = async (
   provider: keyof typeof aiConfig,
   message: string,
@@ -41,7 +36,7 @@ const attemptProvider = async (
 
   const originalWrite = res.write.bind(res);
 
-  // Intercept res.write untuk menampung teks potongan (chunk) dari stream
+  // menampung teks potongan dari stream
   res.write = (chunk: any, encoding?: any, callback?: any) => {
     const chunkStr = chunk.toString();
 
@@ -49,11 +44,11 @@ const attemptProvider = async (
       try {
         const parsed = JSON.parse(chunkStr.slice(6));
         if (parsed.type === "answer" && parsed.text) {
-          fullAnswerText += parsed.text; // Gabungkan semua potongan teks AI
+          fullAnswerText += parsed.text;
           hasSentChunk = true;
         }
       } catch (e) {
-        // abaikan potongan SSE yang parsial
+
       }
     }
 
@@ -65,13 +60,12 @@ const attemptProvider = async (
   console.log(`==================================================`);
 
   try {
-    // 1. Jalankan proses streaming sampai SELESAI total
+    //proses streaming sampai SELESAI total
     await streamFunctions[provider](message, res);
 
-    // 2. SETELAH STREAM SELESAI, baru gabungan teks lengkap di-parse ke JSON
+    //baru gabungkan teks lengkap di-parse ke JSON
     let validResult: any;
     try {
-      // Bersihkan jika ada sisa markdown codeblock dari AI
       const cleanJsonStr = fullAnswerText
         .replace(/^```json\s*/i, '')
         .replace(/^```\s*/i, '')
@@ -102,7 +96,6 @@ const attemptProvider = async (
     );
     return { success: false, hasSentChunk, error };
   } finally {
-    // Kembalikan fungsi res.write ke bentuk aslinya
     res.write = originalWrite;
   }
 };
