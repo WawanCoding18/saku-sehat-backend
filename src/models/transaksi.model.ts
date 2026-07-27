@@ -2,9 +2,10 @@ import mongoose from "mongoose";
 
 export interface Transaksi {
   user: mongoose.Types.ObjectId;
+  Catatan_Transaksi: string;
   tipe: "pengeluaran" | "pemasukan";
   kategori: string;
-  namaMerchant: string;
+  Sumber_Dana: string;
   nominal: number;
   tanggal: Date;
   createdAt?: string;
@@ -17,6 +18,10 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
       ref: "User",
       required: true,
     },
+    Catatan_Transaksi: {
+      type: String,
+      required: true,
+    },
     tipe: {
       type: String,
       enum: ["pengeluaran", "pemasukan"],
@@ -26,18 +31,34 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
       type: String,
       enum: [
         "Hiburan",
-        "Makanan",
+        "Makanan dan Minuman",
         "Transportasi",
         "Belanja",
         "Tagihan",
         "Kesehatan",
         "Gaji",
+        "Freelance",
+        "Part-time",
+        "Investasi",
         "Lainnya",
       ],
       required: true,
     },
-    namaMerchant: {
+    Sumber_Dana: {
       type: String,
+      enum: [
+        "Tunai",
+        "Gopay",
+        "DANA",
+        "ShopeePay",
+        "Bank Mandiri",
+        "BSI",
+        "BRI",
+        "BTN",
+        "BSA",
+        "OVO",
+        "Lainnya",
+      ],
       required: true,
     },
     nominal: {
@@ -52,7 +73,7 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const TransaksiModel = mongoose.model<Transaksi>("Transaksi", TransaksiSchema);

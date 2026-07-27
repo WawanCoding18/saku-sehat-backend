@@ -11,13 +11,14 @@ export const createTransaksi = async (req: IReqUser, res: Response) => {
       return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    const { tipe, kategori, namaMerchant, nominal, tanggal } = req.body;
+    const { Catatan_Transaksi,tipe, kategori, Sumber_Dana, nominal, tanggal } = req.body;
 
     const transaksi = await TransaksiModel.create({
-      user: userId, // 👈 WAJIB DIMASUKKAN agar tidak memicu ValidationError
+      user: userId,
+      Catatan_Transaksi, 
       tipe,
       kategori,
-      namaMerchant,
+      Sumber_Dana,
       nominal: Number(nominal),
       tanggal: tanggal ? new Date(tanggal) : new Date(),
     });
