@@ -87,6 +87,7 @@ import router from "./routes/api";
 import db from "./utils/database";
 import docs from "./docs/route";
 import cors from "cors";
+import transaksiRoute from "./routes/api";
 
 const app = express();
 
@@ -104,10 +105,11 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api", router);
+app.use("/api/transaksi", transaksiRoute);
 docs(app);
 
 db().then((conn) => {
-  console.log("DB Connected:", conn);
+  console.log("DB Connected");
 }).catch((err) => {
   console.error("DB Error:", err);
 });
