@@ -58,8 +58,6 @@ export const getAllTransaksi = async (req: IReqUser, res: Response) => {
     );
     const saldo = (saldoAwal?.saldoSekarang ?? 0) + totalPemasukan - totalPengeluaran;
 
-    // saldoAwal can be null if the user has no profile yet
-    if (saldoAwal) await saldoAwal.save();
     // 2. Filter untuk list History di bawah (jika tombol filter Pemasukan/Pengeluaran diklik)
     const filter: any = { user: userId };
     if (type) {
