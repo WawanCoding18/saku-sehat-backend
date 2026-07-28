@@ -3,11 +3,11 @@ import { askAIStream } from "../services/ai.services";
 import { scanText } from "../services/ocr.services";
 import TransaksiModel from "../models/transaksi.model";
 
-// 1. Interface khusus untuk type-checking balikan AI
 interface AIResult {
   tipe?: "pengeluaran" | "pemasukan";
   kategori?: string;
-  namaMerchant?: string;
+  Catatan_Transaksi?: string;
+  Sumber_Dana?: string;
   nominal?: number;
   tanggal?: string;
 }
@@ -18,51 +18,45 @@ export const handleOcrUpload = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Gambar tidak boleh kosong" });
   }
 
-  // Set Header Server-Sent Events (SSE)
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
 
   try {
-    // 1. Ekstraksi teks via Tesseract OCR
     const ocrText = await scanText(imageBuffer);
-
-    // 2. Kirim ke AI Stream untuk ekstrak JSON (di-cast ke interface AIResult)
     const result = (await askAIStream(ocrText, res)) as unknown as AIResult;
 
-    // 3. Simpan ke MongoDB via Mongoose
     let savedTransaction = null;
 
     if (result && typeof result === "object") {
       const userId = (req as any).user?.id || (req as any).user?._id;
 
-      // Validasi Tanggal yang Aman
-      let parsedDate = new Date(result.tanggal || "");
-      if (isNaN(parsedDate.getTime())) {
-        parsedDate = new Date(); // Fallback ke hari ini jika tanggal dari AI invalid
+      // Kalau user nggak teridentifikasi, langsung gagalkan proses,
+      // jangan lanjut nyimpen (karena bakal pasti gagal validasi juga)
+      if (!userId) {
+        throw new Error("User tidak teridentifikasi, gagal menyimpan transaksi");
       }
 
-      // Susun object payload dengan tipe 'any' agar fleksibel dengan Schema Mongoose
+      let parsedDate = new Date(result.tanggal || "");
+      if (isNaN(parsedDate.getTime())) {
+        parsedDate = new Date();
+      }
+
       const payload: Record<string, any> = {
+        user: userId,
         tipe: result.tipe || "pengeluaran",
         kategori: result.kategori || "Lainnya",
-        namaMerchant: result.namaMerchant || "Unknown",
+        Catatan_Transaksi: result.Catatan_Transaksi || "Transaksi dari scan struk",
+        Sumber_Dana: result.Sumber_Dana || "Lainnya",
         nominal: Number(result.nominal) || 0,
         tanggal: parsedDate,
       };
 
-      // Tambahkan user jika userId ditemukan dari middleware auth
-      if (userId) {
-        payload.user = userId;
-      }
-
-      // Simpan ke database
       savedTransaction = await TransaksiModel.create(payload);
 
       console.log(`🍃 [DATABASE] Transaksi OCR disimpan! ID: ${savedTransaction._id}`);
     }
 
-    // 4. Kirim respon 'done' SSE
     res.write(
       `data: ${JSON.stringify({
         type: "done",
@@ -79,6 +73,6 @@ export const handleOcrUpload = async (req: Request, res: Response) => {
       })}\n\n`
     );
   } finally {
-    res.end(); // Menutup koneksi SSE
+    res.end();
   }
 };

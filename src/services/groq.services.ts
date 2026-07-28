@@ -3,7 +3,6 @@
 import { aiConfig } from "../utils/config/ai.config";
 import { FULL_SYSTEM_INSTRUCTION } from "../utils/prompts";
 
-
 /**
  * 1. STREAM KHUSUS TEKS (PESAN CHAT)
  */
@@ -39,11 +38,11 @@ export const streamGroq = async (
       messages: [
         {
           role: "system",
-          content: FULL_SYSTEM_INSTRUCTION, 
+          content: FULL_SYSTEM_INSTRUCTION,
         },
         {
           role: "user",
-          content: `Teks/hasil OCR yang diterima pengguna:\n"""${message}"""\n\nVariabel ojk_match_status dari backend:`,
+          content: `Teks/hasil OCR yang diterima pengguna:\n"""${message}"""`,
         },
       ],
       response_format: { type: "json_object" },

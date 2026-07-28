@@ -34,6 +34,6 @@ router.get("/catatan-keunagan/:id", authMiddleware, getTransaksiById);
 router.put("/catatan-keuangan/:id", authMiddleware, updateTransaksi);
 router.delete("/catatan-keuangan/:id", authMiddleware, deleteTransaksi);
 //scan OCR
-router.post('/catatan-keuangan/scan', upload.single('image'), handleOcrUpload)
+router.post('/catatan-keuangan/scan', upload.single('image'), authMiddleware, handleOcrUpload)
 
 export default router;
