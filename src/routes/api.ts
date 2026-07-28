@@ -7,8 +7,8 @@ import { handleOcrUpload } from "../controllers/chat.controller";
 import { getProfile, postProfile, updateProfile } from "../controllers/profile.controller";
 import { postPinjaman, getAllPinjaman, putPinjaman, editPinjaman, deletePinjaman } from "../controllers/pinjaman.controller";
 import { postKalkulatorBunga, getAllKalkulatorBunga } from "../controllers/kalkulator.controller"
-
-
+import { postBudgeting, getAllBudgeting, updateBudgeting, deleteBudgeting } from "../controllers/budgeting.controller";
+import { postBeforeYouBorrow } from "../controllers/beforeYouBorrow.controller";
 
 
 const router = express.Router();
@@ -46,5 +46,13 @@ router.delete("/catatan-keuangan/pinjaman/:id", authMiddleware, deletePinjaman);
 router.post('/kalkulator-bunga', authMiddleware, postKalkulatorBunga);
 router.get("/kalkulator-bunga/output", authMiddleware, getAllKalkulatorBunga)
 
+//router budgeting
+router.post("/catatan-keuangan/budgeting/tambah-budget", authMiddleware, postBudgeting);
+router.get("/catatan-keuangan/budgeting", authMiddleware, getAllBudgeting);
+router.put("/catatan-keuangan/budgeting/:id", authMiddleware, updateBudgeting);
+router.delete("/catatan-keuangan/budgeting/:id", authMiddleware, deleteBudgeting);
+
+//router before you borrow
+router.post("/before-you-borrow", authMiddleware, postBeforeYouBorrow)
 
 export default router;
