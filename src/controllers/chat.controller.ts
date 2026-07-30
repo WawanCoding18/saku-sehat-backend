@@ -1,16 +1,48 @@
 import { Request, Response } from "express";
 import { askAIStream } from "../services/ai.services";
-import { scanText } from "../services/ocr.services";
-import TransaksiModel from "../models/transaksi.model";
+import { scanTextPaddle  } from "../services/ocr.services";
+import { checkOjkLegality } from "../services/ojk.services";
 
-interface AIResult {
-  tipe?: "pengeluaran" | "pemasukan";
-  kategori?: string;
-  Catatan_Transaksi?: string;
-  Sumber_Dana?: string;
-  nominal?: number;
-  tanggal?: string;
-}
+/**
+ * 1. CONTROLLER UNTUK TEKS (PESAN CHAT)
+ */
+export const handleChatStream = async (req: Request, res: Response) => {
+  const { message } = req.body;
+
+  // Validasi input teks
+  if (!message || typeof message !== "string" || message.trim().length === 0) {
+    return res.status(400).json({ error: "Message tidak boleh kosong" });
+  }
+
+  // Header SSE (Server-Sent Events)
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  try {
+    // 1. Cek legalitas OJK berdasarkan isi pesan/nama entitas
+    const ojkResult = await checkOjkLegality(message);
+
+    // 2. Stream analisis teks ke AI Provider (Gemini / Groq)
+    const result = await askAIStream(
+      message,
+      res
+    );
+
+    // 3. Kirim signal done ke client
+    res.write(`data: ${JSON.stringify({ type: "done", result })}\n\n`);
+  } catch (error: any) {
+    console.error("Semua provider gagal (Text):", error.message);
+    res.write(
+      `data: ${JSON.stringify({
+        type: "error",
+        text: "Gagal menganalisis pesan, silakan coba lagi",
+      })}\n\n`
+    );
+  } finally {
+    res.end(); // Tutup koneksi SSE
+  }
+};
 
 export const handleOcrUpload = async (req: Request, res: Response) => {
   const imageBuffer = req.file?.buffer;
@@ -23,56 +55,56 @@ export const handleOcrUpload = async (req: Request, res: Response) => {
   res.setHeader("Connection", "keep-alive");
 
   try {
-    const ocrText = await scanText(imageBuffer);
-    const result = (await askAIStream(ocrText, res)) as unknown as AIResult;
+    const ocrResult = await scanTextPaddle(imageBuffer);
 
-    let savedTransaction = null;
-
-    if (result && typeof result === "object") {
-      const userId = (req as any).user?.id || (req as any).user?._id;
-
-      // Kalau user nggak teridentifikasi, langsung gagalkan proses,
-      // jangan lanjut nyimpen (karena bakal pasti gagal validasi juga)
-      if (!userId) {
-        throw new Error("User tidak teridentifikasi, gagal menyimpan transaksi");
+    // Extract plain text from Paddle OCR response
+    const ocrText: string = (() => {
+      if (!ocrResult) return "";
+      
+      // Handle when scanTextPaddle returns { result: [ { text: "...", box: ... } ] }
+      if (typeof ocrResult === "object" && Array.isArray((ocrResult as any).result)) {
+        return (ocrResult as any).result
+          .map((item: any) => (typeof item === "string" ? item : item.text || ""))
+          .filter(Boolean)
+          .join(" ");
       }
 
-      let parsedDate = new Date(result.tanggal || "");
-      if (isNaN(parsedDate.getTime())) {
-        parsedDate = new Date();
+      if (typeof ocrResult === "string") return ocrResult;
+
+      if (Array.isArray(ocrResult)) {
+        return ocrResult
+          .map((item: any) => (typeof item === "string" ? item : item.text || ""))
+          .filter(Boolean)
+          .join(" ");
       }
 
-      const payload: Record<string, any> = {
-        user: userId,
-        tipe: result.tipe || "pengeluaran",
-        kategori: result.kategori || "Lainnya",
-        Catatan_Transaksi: result.Catatan_Transaksi || "Transaksi dari scan struk",
-        Sumber_Dana: result.Sumber_Dana || "Lainnya",
-        nominal: Number(result.nominal) || 0,
-        tanggal: parsedDate,
-      };
+      if (typeof ocrResult === "object") {
+        if (typeof (ocrResult as any).text === "string") return (ocrResult as any).text;
+        if (Array.isArray((ocrResult as any).text)) return (ocrResult as any).text.join(" ");
+        if (Array.isArray((ocrResult as any).lines)) return (ocrResult as any).lines.join(" ");
+      }
 
-      savedTransaction = await TransaksiModel.create(payload);
+      return String(ocrResult);
+    })();
 
-      console.log(`🍃 [DATABASE] Transaksi OCR disimpan! ID: ${savedTransaction._id}`);
+    // Debug log to verify text extraction
+    console.log("📝 Extracted OCR Text:", ocrText);
+
+    if (!ocrText || ocrText === "[object Object]") {
+      throw new Error("Gagal mengekstrak teks dari respon OCR");
     }
 
-    res.write(
-      `data: ${JSON.stringify({
-        type: "done",
-        result,
-        data: savedTransaction,
-      })}\n\n`
+
+    const result = await askAIStream(
+      ocrText,
+      res
     );
+
+    res.write(`data: ${JSON.stringify({ type: "done", result })}\n\n`);
   } catch (error: any) {
-    console.error("❌ Gagal proses scan & simpan transaksi:", error.message);
-    res.write(
-      `data: ${JSON.stringify({
-        type: "error",
-        text: "Gagal menganalisis gambar atau menyimpan transaksi",
-      })}\n\n`
-    );
+    console.error("Gagal proses gambar:", error.message);
+    res.write(`data: ${JSON.stringify({ type: "error", text: error.message || "Gagal menganalisis gambar" })}\n\n`);
   } finally {
-    res.end();
+    res.end(); // Closes the SSE connection
   }
 };
