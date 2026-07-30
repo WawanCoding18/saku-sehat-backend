@@ -1,7 +1,7 @@
 // 📄 File: src/services/groq.services.ts
 
 import { aiConfig } from "../utils/config/ai.config";
-import { FULL_SYSTEM_INSTRUCTION } from "../utils/prompts";
+import { FULL_SYSTEM_INSTRUCTION_OJK } from "../utils/OJK.prompts";
 
 /**
  * 1. STREAM KHUSUS TEKS (PESAN CHAT)
@@ -14,7 +14,7 @@ export const streamGroq = async (
   const url = "https://api.groq.com/openai/v1/chat/completions";
 
   // 🔍 [DEBUG DATA TEXT]
-  const totalChars = (message?.length || 0) + FULL_SYSTEM_INSTRUCTION.length;
+  const totalChars = (message?.length || 0) + FULL_SYSTEM_INSTRUCTION_OJK.length;
   const estimatedTokens = Math.ceil(totalChars / 3.5);
 
   console.log("--------------------------------------------------");
@@ -22,7 +22,7 @@ export const streamGroq = async (
   console.log(" Panjang Pesan User   :", message?.length || 0, "karakter");
   console.log(
     " Panjang System Prompt:",
-    FULL_SYSTEM_INSTRUCTION.length,
+    FULL_SYSTEM_INSTRUCTION_OJK.length,
     "karakter System Prompt"
   );
   console.log(" Total Karakter Teks  :", totalChars, "karakter");
@@ -38,7 +38,7 @@ export const streamGroq = async (
     body: JSON.stringify({
       model: aiConfig.groq.model, // 👈 Model Teks
       messages: [
-        { role: "system", content: FULL_SYSTEM_INSTRUCTION },
+        { role: "system", content: FULL_SYSTEM_INSTRUCTION_OJK },
         {
           role: "user",
           content: `Teks/hasil OCR yang diterima pengguna:\n"""${message}"""\n\nVariabel ojk_match_status dari backend: ${ojkMatchStatus}`,

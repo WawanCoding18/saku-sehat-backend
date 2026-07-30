@@ -3,6 +3,7 @@ import { aiConfig } from "../utils/config/ai.config";
 import { GoogleGenAI, Type } from "@google/genai";
 import { getFullSystemInstruction } from "../utils/prompts";
 
+
 // Client khusus Teks (menggunakan API Key dari config)
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
 

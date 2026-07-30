@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { aiConfig } from "../utils/config/ai.config";
 import { GoogleGenAI } from "@google/genai";
-import { FULL_SYSTEM_INSTRUCTION } from "../utils/prompts";
+import { FULL_SYSTEM_INSTRUCTION_OJK } from "../utils/OJK.prompts";
 
 // Client khusus Teks & Gambar (menggunakan API Key dari masing-masing config)
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
@@ -14,7 +14,7 @@ export const streamGemini = async (
   res: any
 ): Promise<void> => {
   // 🔍 [DEBUG DATA TEXT]
-  const totalChars = (message?.length || 0) + FULL_SYSTEM_INSTRUCTION.length;
+  const totalChars = (message?.length || 0) + FULL_SYSTEM_INSTRUCTION_OJK.length;
   const estimatedTokens = Math.ceil(totalChars / 3.5);
 
   console.log("--------------------------------------------------");
@@ -22,7 +22,7 @@ export const streamGemini = async (
   console.log(" Panjang Pesan User   :", message?.length || 0, "karakter");
   console.log(
     " Panjang System Prompt:",
-    FULL_SYSTEM_INSTRUCTION.length,
+    FULL_SYSTEM_INSTRUCTION_OJK.length,
     "karakter System Prompt"
   );
   console.log(" Total Karakter Teks  :", totalChars, "karakter");
@@ -33,7 +33,7 @@ export const streamGemini = async (
     model: aiConfig.gemini.model, // 👈 Menggunakan model config teks
     contents: `Teks/hasil OCR yang diterima pengguna:\n"""${message}"""\n\nVariabel ojk_match_status dari backend: ${ojkMatchStatus}`,
     config: {
-      systemInstruction: FULL_SYSTEM_INSTRUCTION,
+      systemInstruction: FULL_SYSTEM_INSTRUCTION_OJK,
       responseMimeType: "application/json",
       maxOutputTokens: 2048
     },
