@@ -9,6 +9,7 @@ import { postPinjaman, getAllPinjaman, putPinjaman, editPinjaman, deletePinjaman
 import { postKalkulatorBunga, getAllKalkulatorBunga } from "../controllers/kalkulator.controller"
 import { postBudgeting, getAllBudgeting, updateBudgeting, deleteBudgeting } from "../controllers/budgeting.controller";
 import { postBeforeYouBorrow } from "../controllers/beforeYouBorrow.controller";
+import { postCariAman } from "../controllers/cariAman.controller";
 
 
 const router = express.Router();
@@ -54,5 +55,8 @@ router.delete("/catatan-keuangan/budgeting/:id", authMiddleware, deleteBudgeting
 
 //router before you borrow
 router.post("/before-you-borrow", authMiddleware, postBeforeYouBorrow)
+
+//router cariAman
+router.post("/cariAman", authMiddleware, postCariAman);
 
 export default router;
