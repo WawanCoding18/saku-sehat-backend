@@ -3,6 +3,7 @@ import { IReqUser } from "../middlewares/auth.Middleware";
 import { hitungDataTransaksi } from "./transaksi.controller";
 import { hitungDataPinjaman } from "./pinjaman.controller";
 import { hitungDanSimpanFinancialHealth } from "./financialHealth.controller";
+import { cekBudgetWarning } from "./budgeting.controller";
 
 export const getDashboard = async (req: IReqUser, res: Response) => {
   try {
@@ -13,16 +14,18 @@ export const getDashboard = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    const [transaksiData, financialHealthData, pinjamanData] =
+    const [transaksiData, financialHealthData, pinjamanData, budgetWarnings] =
       await Promise.all([
         hitungDataTransaksi(userId.toString()),
         hitungDanSimpanFinancialHealth(userId.toString()),
         hitungDataPinjaman(userId.toString()),
+        cekBudgetWarning(userId.toString()),
       ]);
 
     return res.status(200).json({
       message: "Dashboard data berhasil diambil",
       data: {
+        notifikasi: budgetWarnings,
         summary: {
           saldo: transaksiData.summary.saldo,
           totalPemasukan: transaksiData.summary.totalPemasukan,

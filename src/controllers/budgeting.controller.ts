@@ -282,3 +282,32 @@ export const deleteBudgeting = async (req: IReqUser, res: Response) => {
       .json({ message: "Gagal menghapus budget", error: String(error) });
   }
 };
+
+export const cekBudgetWarning = async (userId: string) => {
+  const listBudgeting = await BudgetingModel.find({ user: userId });
+  const warnings = [];
+
+  for (const budget of listBudgeting) {
+    const transaksiDalamPeriode = await TransaksiModel.find({
+      user: userId,
+      kategori: budget.Kategori_Budget,
+      tipe: "pengeluaran",
+      tanggal: { $gte: budget.Tanggal_Mulai, $lte: budget.Tanggal_Selesai },
+    });
+
+    const terpakai = transaksiDalamPeriode.reduce((acc, t) => acc + (t.nominal ?? 0), 0);
+    const persentase = budget.Batas_PerBulan > 0
+      ? Math.round((terpakai / budget.Batas_PerBulan) * 100)
+      : 0;
+
+    if (persentase >= 80) {
+      warnings.push({
+        kategori: budget.Kategori_Budget,
+        persentase,
+        pesan: `${persentase}% budget terpakai! Saatnya kamu menghemat agar target tabungan tetap tercapai dan cicilan bisa dibayar tepat waktu.`,
+      });
+    }
+  }
+
+  return warnings;
+};
