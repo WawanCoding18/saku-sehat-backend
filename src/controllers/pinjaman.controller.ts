@@ -74,6 +74,60 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
   }
 };
 
+// 🧮 HELPER: Hitung data pinjaman (logic-only, dipakai bareng getAllPinjaman & dashboard)
+export const hitungDataPinjaman = async (userId: string) => {
+  const listPinjaman = await PinjamanModel.find({ user: userId }).sort({
+    createdAt: -1,
+  });
+
+  const formattedData = listPinjaman.map((item) => {
+    const progress =
+      item.pinjamanAwal > 0
+        ? ((item.pinjamanAwal - item.sisaTagihan) / item.pinjamanAwal) * 100
+        : 0;
+
+    return {
+      _id: item._id,
+      namaPlatform: item.namaPlatform,
+      jenisPinjaman: item.jenisPinjaman,
+      pinjamanAwal: item.pinjamanAwal,
+      cicilanBulanan: item.cicilanBulanan,
+      sisaTagihan: item.sisaTagihan,
+      jatuhTempo: item.jatuhTempo,
+      persenBunga: item.persenBunga,
+      statusPinjaman: item.statusPinjaman,
+      progress: Number(progress.toFixed(1)),
+    };
+  });
+
+  const belumDibayar = listPinjaman.reduce((acc, item) => {
+    return acc + (item.sisaTagihan ?? 0);
+  }, 0);
+
+  const sudahDibayar = listPinjaman.reduce((acc, item) => {
+    const terbayarPerItem = (item.pinjamanAwal ?? 0) - (item.sisaTagihan ?? 0);
+    return acc + terbayarPerItem;
+  }, 0);
+
+  const kewajibanPerbulan = listPinjaman.reduce((acc, item) => {
+    if (item.sisaTagihan > 0) {
+      return acc + (item.cicilanBulanan ?? 0);
+    }
+    return acc;
+  }, 0);
+
+  return {
+    summary: {
+      belumDibayar,
+      sudahDibayar,
+      kewajibanPerbulan,
+    },
+    totalPinjaman: formattedData.length,
+    sisaSlot: 3 - formattedData.length,
+    data: formattedData,
+  };
+};
+
 // 📋 GET ALL (Ambil Semua Data)
 export const getAllPinjaman = async (req: IReqUser, res: Response) => {
   try {

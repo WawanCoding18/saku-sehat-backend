@@ -143,7 +143,7 @@ const tentukanGrade = (skorTotal: number): "A" | "B" | "C" | "D" | "E" => {
 // ==========================================
 // 5. HELPER: Hitung & Simpan Financial Health (dipakai bareng GET & POST)
 // ==========================================
-const hitungDanSimpanFinancialHealth = async (userId: string) => {
+export const hitungDanSimpanFinancialHealth = async (userId: string) => {
   const disiplinAnggaran = await hitungDisiplinAnggaran(userId);
   const pengelolaanPinjaman = await hitungPengelolaanPinjaman(userId);
 

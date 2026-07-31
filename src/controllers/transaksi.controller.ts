@@ -37,6 +37,41 @@ export const createTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
+// 🧮 HELPER: Hitung data transaksi (logic-only, dipakai bareng getAllTransaksi & dashboard)
+export const hitungDataTransaksi = async (userId: string, type?: string) => {
+  const allTransaksi = await TransaksiModel.find({ user: userId });
+  const totalPemasukan = allTransaksi
+    .filter((t) => t.tipe === "pemasukan")
+    .reduce((acc, curr) => acc + (curr.nominal ?? 0), 0);
+
+  const totalPengeluaran = allTransaksi
+    .filter((t) => t.tipe === "pengeluaran")
+    .reduce((acc, curr) => acc + (curr.nominal ?? 0), 0);
+
+  const saldoAwal = await ProfileModel.findOne({ user: userId }).select(
+    "saldoSekarang",
+  );
+  const saldo = (saldoAwal?.saldoSekarang ?? 0) + totalPemasukan - totalPengeluaran;
+
+  const filter: any = { user: userId };
+  if (type) {
+    filter.tipe = type;
+  }
+
+  const transaksiList = await TransaksiModel.find(filter).sort({
+    tanggal: -1,
+  });
+
+  return {
+    summary: {
+      saldo,
+      totalPemasukan,
+      totalPengeluaran,
+    },
+    data: transaksiList,
+  };
+};
+
 // 📋 GET ALL TRANSAKSI (Hanya milik user yang sedang login)
 export const getAllTransaksi = async (req: IReqUser, res: Response) => {
   try {

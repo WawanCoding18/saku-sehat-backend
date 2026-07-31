@@ -1,0 +1,51 @@
+import { Response } from "express";
+import { IReqUser } from "../middlewares/auth.Middleware";
+import { hitungDataTransaksi } from "./transaksi.controller";
+import { hitungDataPinjaman } from "./pinjaman.controller";
+import { hitungDanSimpanFinancialHealth } from "./financialHealth.controller";
+
+export const getDashboard = async (req: IReqUser, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: User tidak teridentifikasi" });
+    }
+
+    const [transaksiData, financialHealthData, pinjamanData] =
+      await Promise.all([
+        hitungDataTransaksi(userId.toString()),
+        hitungDanSimpanFinancialHealth(userId.toString()),
+        hitungDataPinjaman(userId.toString()),
+      ]);
+
+    return res.status(200).json({
+      message: "Dashboard data berhasil diambil",
+      data: {
+        summary: {
+          saldo: transaksiData.summary.saldo,
+          totalPemasukan: transaksiData.summary.totalPemasukan,
+          totalPengeluaran: transaksiData.summary.totalPengeluaran,
+          totalPinjaman: pinjamanData.totalPinjaman,
+          financialHealth: {
+            skorTotal: financialHealthData.skorTotal,
+            grade: financialHealthData.grade,
+            updatedAt: financialHealthData.get("updatedAt"),
+          },
+          pinjaman: {
+            sisaSlot: pinjamanData.sisaSlot,
+            data: pinjamanData.data,
+          },
+          riwayatTransaksi: transaksiData.data,
+        },
+      },
+    });
+  } catch (error: any) {
+    console.error("❌ Gagal mengambil data dashboard:", error.message);
+    return res.status(500).json({
+      message: "Gagal mengambil data dashboard",
+      error: error.message,
+    });
+  }
+};

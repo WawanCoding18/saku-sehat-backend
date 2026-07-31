@@ -11,7 +11,7 @@ import { postBudgeting, getAllBudgeting, updateBudgeting, deleteBudgeting } from
 import { postBeforeYouBorrow } from "../controllers/beforeYouBorrow.controller";
 import { postCariAman } from "../controllers/cariAman.controller";
 import { postFinancialHealth } from "../controllers/financialHealth.controller"
-import { getFinancialHealth } from "../controllers/financialHealth.controller"
+import { getDashboard } from "../controllers/dashboard.controller";
 
 
 const router = express.Router();
@@ -62,7 +62,7 @@ router.post("/before-you-borrow", authMiddleware, postBeforeYouBorrow)
 router.post("/cariAman", authMiddleware, postCariAman);
 
 //router financialhealth
-router.post("/dashboard", authMiddleware, postFinancialHealth)
-router.get("/dashboard", authMiddleware, getFinancialHealth)
+router.post("/dashboard/financial-health", authMiddleware, postFinancialHealth)
+router.get("/dashboard", authMiddleware, getDashboard)
 
 export default router;
