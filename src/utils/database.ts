@@ -27,7 +27,7 @@ const connect = async () => {
   if (!cached.promise) {
     cached.promise = mongoose
       .connect(DATABASE_URL, {
-        dbName: "db-saku-sehat-dev", // beda dari production biar aman
+        dbName: "db-saku-sehat", // beda dari production biar aman
         bufferCommands: false,
       })
       .then((mongooseInstance) => mongooseInstance);
