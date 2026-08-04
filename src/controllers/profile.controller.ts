@@ -3,7 +3,7 @@ import ProfileModel from "../models/profile.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import UserModel  from "../models/user.model";
 
-//nambah profile
+//Hanya milik user yang sedang login
 export const postProfile = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -64,10 +64,9 @@ export const updateProfile = async (req: IReqUser, res: Response) => {
       return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-   
+    //Ambil hanya field yang diizinkan untuk diubah
     const { username, fullName, fotoProfilUrl, sumberPemasukan } = req.body;
 
-    //Update UserModel hanya username & fullName aja
     if (username || fullName) {
       await UserModel.findByIdAndUpdate(
         userId,
@@ -79,12 +78,12 @@ export const updateProfile = async (req: IReqUser, res: Response) => {
       );
     }
 
-    //Susun payload khusus ProfileModel hanya fotoProfilUrl & sumberPemasukan saja
+    //Susun payload khusus ProfileModel
     const updateDataProfile: Record<string, any> = {};
     if (fotoProfilUrl !== undefined) updateDataProfile.fotoProfilUrl = fotoProfilUrl;
     if (sumberPemasukan !== undefined) updateDataProfile.sumberPemasukan = sumberPemasukan;
 
-   //update berdasarkan id yang sedang login
+    //Update ProfileModel
     const profile = await ProfileModel.findOneAndUpdate(
       { user: userId },
       updateDataProfile,

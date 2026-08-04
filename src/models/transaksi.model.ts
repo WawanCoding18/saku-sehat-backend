@@ -31,7 +31,7 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
       type: String,
       enum: [
         "Hiburan",
-        "Makanan dan Minuman",
+        "Makanan",
         "Transportasi",
         "Belanja",
         "Tagihan",

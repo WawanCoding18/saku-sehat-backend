@@ -1,7 +1,6 @@
 import Crypto from "crypto";
 import { SECRET } from "./env";
 
-//Enkripsi password pake PBKDF2
 export const encrypt = (password: string): string => {
   const encrypted = Crypto.pbkdf2Sync(
     password,

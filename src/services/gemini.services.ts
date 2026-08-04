@@ -4,12 +4,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { getFullSystemInstruction } from "../utils/prompts";
 
 
+// Client khusus Teks (menggunakan API Key dari config)
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
 
-//STREAM Gemini teks
 export const streamGemini = async (
   message: string,
-  res: any
+  res: any,
 ): Promise<void> => {
   const dynamicSystemInstruction = getFullSystemInstruction();
 
@@ -33,32 +33,70 @@ export const streamGemini = async (
     config: {
       systemInstruction: dynamicSystemInstruction,
       responseMimeType: "application/json",
-
+      //Mengunci struktur output dengan Schema bawaan SDK Gemini
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          tipe: { 
-            type: Type.STRING, 
-            enum: ["pengeluaran", "pemasukan"] 
-          },
-          kategori: { 
+          Catatan_Transaksi: {
             type: Type.STRING,
-            enum: ["Hiburan", "Makanan dan Minuman", "Transportasi", "Belanja", "Tagihan", "Kesehatan", "Gaji", "Lainnya"]
+            description: "Ringkasan barang/item yang dibeli user, dipisah koma",
           },
-          namaMerchant: { 
+          tipe: {
             type: Type.STRING,
-            description: "Nama brand/toko utama (misal: 'Indomaret', 'Loemplia Bom'). Jangan isi nama item makanan!"
+            enum: ["pengeluaran", "pemasukan"],
           },
-          nominal: { 
+          kategori: {
+            type: Type.STRING,
+            enum: [
+              "Hiburan",
+              "Makanan",
+              "Transportasi",
+              "Belanja",
+              "Tagihan",
+              "Kesehatan",
+              "Gaji",
+              "Freelance",
+              "Part-time",
+              "Investasi",
+              "Lainnya",
+            ],
+          },
+          Sumber_Dana: {
+            type: Type.STRING,
+            enum: [
+              "Tunai",
+              "Gopay",
+              "DANA",
+              "ShopeePay",
+              "Bank Mandiri",
+              "BSI",
+              "BRI",
+              "BTN",
+              "BSA",
+              "OVO",
+              "Lainnya",
+            ],
+            description:
+              "Metode pembayaran yang dipakai user (misal 'Tunai', 'Gopay'). BUKAN nama toko/brand/merchant. Jika tidak jelas dari teks, isi 'Lainnya'.",
+          },
+          nominal: {
             type: Type.NUMBER,
-            description: "Nilai total bayar angka murni"
+            description: "Nilai total bayar, angka murni tanpa titik/koma",
           },
-          tanggal: { 
-            type: Type.STRING, 
-            description: "Format YYYY-MM-DD. Wajib mengunci tanggal dari OCR jika ada (contoh '16.06.18' -> '2018-06-16', '05.09.17' -> '2017-09-05'). Jika tidak ada, gunakan tanggal hari ini dari prompt."
+          tanggal: {
+            type: Type.STRING,
+            description:
+              "Format YYYY-MM-DD. Wajib mengunci tanggal dari OCR jika ada (contoh '16.06.18' -> '2018-06-16', '05.09.17' -> '2017-09-05'). Jika tidak ada, gunakan tanggal hari ini dari prompt.",
           },
         },
-        required: ["tipe", "kategori", "namaMerchant", "nominal", "tanggal"],
+        required: [
+          "Catatan_Transaksi",
+          "tipe",
+          "kategori",
+          "Sumber_Dana",
+          "nominal",
+          "tanggal",
+        ],
       },
       temperature: 0.0,
       maxOutputTokens: 2048,
@@ -70,7 +108,7 @@ export const streamGemini = async (
     for (const part of parts) {
       if (part.text) {
         res.write(
-          `data: ${JSON.stringify({ type: "answer", text: part.text })}\n\n`
+          `data: ${JSON.stringify({ type: "answer", text: part.text })}\n\n`,
         );
       }
     }

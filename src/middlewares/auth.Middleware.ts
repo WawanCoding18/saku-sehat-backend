@@ -7,11 +7,8 @@ export interface IReqUser extends Request {
   user?: IUserToken;
 }
 
-
 export default (req: Request, res: Response, next: NextFunction) => {
-
   const authorization = req.headers?.authorization;
-
   if (!authorization) {
     return res.status(403).json({
       message: "unauthorized no token",
@@ -28,6 +25,7 @@ export default (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
+//generate user dari access token
   const user = generateUser(accessToken);
 
   if (!user) {
@@ -36,9 +34,8 @@ export default (req: Request, res: Response, next: NextFunction) => {
       data: null,
     });
   }
-  
+
   (req as IReqUser).user = user;
 
-//dilanjutkan ke program auth.controller.me
   next();
 };

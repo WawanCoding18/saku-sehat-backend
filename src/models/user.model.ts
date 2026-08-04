@@ -60,12 +60,13 @@ const UserSchema = new mongoose.Schema<User>(
   }
 );
 
+<<<<<<< HEAD
 // Pre-save hook — hanya encrypt password
+=======
+>>>>>>> transaksi_manual
 UserSchema.pre("save", function (next) {
   const user = this;
 
-  // Hanya encrypt kalau password baru / diubah
-  // supaya tidak di-encrypt dua kali
   if (user.isModified("password")) {
     user.password = encrypt(user.password);
   }

@@ -48,7 +48,7 @@ const attemptProvider = async (
           hasSentChunk = true;
         }
       } catch (e) {
-
+   
       }
     }
 
@@ -60,12 +60,13 @@ const attemptProvider = async (
   console.log(`==================================================`);
 
   try {
-    //proses streaming sampai SELESAI total
+    //Jalankan proses streaming sampai SELESAI total
     await streamFunctions[provider](message, res);
 
-    //baru gabungkan teks lengkap di-parse ke JSON
+
     let validResult: any;
     try {
+ 
       const cleanJsonStr = fullAnswerText
         .replace(/^```json\s*/i, '')
         .replace(/^```\s*/i, '')
@@ -96,9 +97,11 @@ const attemptProvider = async (
     );
     return { success: false, hasSentChunk, error };
   } finally {
+    //fungsi res.write ke bentuk aslinya
     res.write = originalWrite;
   }
 };
+
 // Stream Teks
 export const askAIStream = async (
   message: string,

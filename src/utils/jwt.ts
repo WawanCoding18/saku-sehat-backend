@@ -3,7 +3,6 @@ import { Types } from "mongoose";
 import jwt from "jsonwebtoken";
 import { SECRET } from "./env";
 
-
 export interface IUserToken
   extends Omit<
     User,
@@ -19,7 +18,6 @@ export interface IUserToken
   id?: Types.ObjectId;
 }
 
-//Generate json web token(JWT)
 export const generateToken = (user: IUserToken): string => {
   const token = jwt.sign(user, SECRET, {
 

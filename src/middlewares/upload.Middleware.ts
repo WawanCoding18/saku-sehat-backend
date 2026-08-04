@@ -1,7 +1,7 @@
 import multer from "multer";
 import { Request } from "express";
 
-//Simpan di RAM
+// 1. Simpan di RAM (Memory Storage)
 const storage = multer.memoryStorage();
 
 //Hanya mengizinkan format gambar yang sudah ditentukan
@@ -32,9 +32,7 @@ const fileFilter = (
 export const upload = multer({
   storage,
   limits: {
-    
-    //maks 5 MB
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024, // Maksimal 5 MB
   },
   fileFilter,
 });
