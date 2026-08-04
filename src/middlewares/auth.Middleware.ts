@@ -25,6 +25,7 @@ export default (req: Request, res: Response, next: NextFunction) => {
     });
   }
 
+//generate user dari access token
   const user = generateUser(accessToken);
 
   if (!user) {
