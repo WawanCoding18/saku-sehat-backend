@@ -4,17 +4,11 @@ import { streamGroq } from "./aiCariAmanGroq";
 import { RiskAnalysisSchema, RiskAnalysis } from "../utils/riskAnalisis";
 import { performance } from "perf_hooks";
 
-// ==== Config & Provider Teks ====
+
 let currentProviderIndex = 0;
 const providers = Object.keys(aiConfig) as Array<keyof typeof aiConfig>;
 
-// ==== Config & Provider Gambar ====
-// let currentImageProviderIndex = 0;
-// const imageProviders = Object.keys(aiConfigImage) as Array<
-//   keyof typeof aiConfigImage
-// >;
 
-// ==== 1. Tipe Data Fungsi Stream ====
 type StreamFunction = (
   message: string,
   ojkMatchStatus: string,
@@ -22,40 +16,24 @@ type StreamFunction = (
 ) => Promise<void>;
 
 
-// ==== 2. Mapping Fungsi Stream (Teks vs Gambar) ====
 const streamFunctions: Record<keyof typeof aiConfig, StreamFunction> = {
   gemini: streamGemini,
   groq: streamGroq,
 };
 
-// Menerapkan aiConfigImage untuk mapping fungsi gambar
-// const streamImageFunctions: Record<
-//   keyof typeof aiConfigImage,
-//   StreamImageFunction
-// > = {
-//   gemini: streamGeminiImage,
-//   groq: streamGroqImage,
-// };
 
-// ==== 3. Helper: Normalisasi Skor & Validasi Zod ====
-// ==== 3. Helper: Hitung Ulang Skor Secara Deterministik ====
 const recalculateScore = (data: any): number => {
   let score = 0;
 
-  // Bobot sesuai rubrik di knowledge_base.md
-  if (data.soceng_indicated) score += 40;          // cloning/pencatutan/social engineering
-  if (data.manipulative_language_detected) score += 15; // bahasa manipulatif/urgensi palsu
-  if (data.interest_warning) score += 30;           // bunga/biaya melebihi batas
-  if (data.apk_download_indicated) score += 35;     // ajakan unduh APK non-resmi
-  if (data.sensitive_data_requested) score += 50;   // permintaan OTP/PIN/CVV/NIK — flag merah mutlak
+  if (data.soceng_indicated) score += 40;      
+  if (data.manipulative_language_detected) score += 15; 
+  if (data.interest_warning) score += 30;          
+  if (data.apk_download_indicated) score += 35;     
+  if (data.sensitive_data_requested) score += 50;   
   if (data.channel_violation_detected) score += 25;
 
-  // NOTE: pelanggaran channel komunikasi (Parameter 2) belum punya flag boolean
-  // terpisah di skema saat ini — untuk sementara masuk campur ke soceng_indicated
-  // atau manipulative_language_detected tergantung bagaimana AI mengklasifikasikannya.
-  // Lihat catatan di bagian bawah soal ini.
 
-  // Terapkan faktor ojk_match_status secara MATEMATIS PASTI
+  // Terapkan faktor ojk_match_status secara matematis secara pasti
   if (data.is_ojk_legal === "Terdaftar Resmi") {
     score = score * 0.6;
   } else if (data.is_ojk_legal === "Tidak Ditemukan") {
@@ -66,20 +44,20 @@ const recalculateScore = (data: any): number => {
   return Math.min(100, Math.max(0, Math.round(score)));
 };
 
-// ==== 4. Helper: Normalisasi Skor & Validasi Zod (VERSI UPDATE) ====
+
 const processRiskData = (parsedJson: any): RiskAnalysis => {
-  // 1. Hitung ulang risk_score dari flag boolean — ABAIKAN angka yang dikasih AI
+  // Hitung ulang risk_score dari flag boolean — Abaikan angka yang dikasih AI
   parsedJson.risk_score = recalculateScore(parsedJson);
 
-  // 2. Mencegah kontradiksi: scam/soceng true tapi skornya kebetulan masih rendah
+  //Mencegah kontradiksi: scam/soceng true tapi skornya kebetulan masih rendah
   if (
     (parsedJson.is_scam_indicated || parsedJson.soceng_indicated) &&
     parsedJson.risk_score < 20
   ) {
-    parsedJson.risk_score = 20; // paksa minimal masuk kategori "waspada"
+    parsedJson.risk_score = 20;
   }
 
-  // 3. Sinkronkan risk_level dari risk_score (deterministik, sudah benar sebelumnya)
+  //Sinkronkan risk_level dari risk_score
   if (parsedJson.risk_score >= 60) {
     parsedJson.risk_level = "berbahaya";
   } else if (parsedJson.risk_score >= 20) {
@@ -88,13 +66,12 @@ const processRiskData = (parsedJson: any): RiskAnalysis => {
     parsedJson.risk_level = "aman";
   }
 
-  // 4. Override tambahan: flag merah mutlak SELALU "berbahaya", apapun skornya
   if (parsedJson.sensitive_data_requested) {
     parsedJson.risk_level = "berbahaya";
     parsedJson.risk_score = Math.max(parsedJson.risk_score, 60);
   }
 
-  // 5. Validasi skema Zod (tetap dipertahankan sebagai lapisan terakhir)
+  //Validasi skema Zod
   const validation = RiskAnalysisSchema.safeParse(parsedJson);
   if (!validation.success) {
     throw new Error(
@@ -105,7 +82,7 @@ const processRiskData = (parsedJson: any): RiskAnalysis => {
   return validation.data;
 };
 
-// ==== 4. Attempt Provider: TEKS ====
+
 const attemptProvider = async (
   provider: keyof typeof aiConfig,
   message: string,
@@ -134,7 +111,7 @@ const attemptProvider = async (
           hasSentChunk = true;
         }
       } catch (e) {
-        // abaikan chunk parsial
+       
       }
     }
 
@@ -163,7 +140,7 @@ const attemptProvider = async (
 
     // Hitung durasi mentah dalam ms
     const durationMs = performance.now() - startTime;
-    const durationSec = (durationMs / 1000).toFixed(2); // Ubah ke detik (2 angka di belakang koma)
+    const durationSec = (durationMs / 1000).toFixed(2);
 
     console.log(`\n📊 [REKAPITULASI PROSES AI TEKS]`);
     console.log(`├─ Provider Terpilih : ${provider.toUpperCase()}`);

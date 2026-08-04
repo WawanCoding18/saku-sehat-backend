@@ -1,11 +1,7 @@
-// 📄 File: src/services/groq.services.ts
-
 import { aiConfig } from "../utils/config/ai.config";
 import { FULL_SYSTEM_INSTRUCTION_OJK } from "../utils/OJK.prompts";
 
-/**
- * 1. STREAM KHUSUS TEKS (PESAN CHAT)
- */
+
 export const streamGroq = async (
   message: string,
   ojkMatchStatus: string,

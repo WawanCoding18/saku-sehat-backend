@@ -2,7 +2,6 @@ import axios from "axios";
 import FormData from "form-data";
 import sharp from "sharp";
 
-// Type definitions matching FastAPI response structure
 export interface OCRItem {
   box: number[][];
   text: string;
@@ -14,9 +13,7 @@ export interface PaddleOCRResponse {
   processing_time_ms?: number;
 }
 
-/**
- * Compresses/resizes image buffer and forwards to FastAPI PaddleOCR microservice
- */
+
 export const scanTextPaddle = async (
   imageBuffer: Buffer,
   originalName: string = "image.jpg"
@@ -24,8 +21,7 @@ export const scanTextPaddle = async (
   const startTime = performance.now();
 
   try {
-    // ⚡ Resize large images (e.g. 4K camera photos) down to max 1024px before sending
-    // This drops CPU processing time from ~140s down to 1-3 seconds.
+
     const resizedBuffer = await sharp(imageBuffer)
       .resize({
         width: 1024,
@@ -36,14 +32,12 @@ export const scanTextPaddle = async (
       .jpeg({ quality: 80 })
       .toBuffer();
 
-    // Prepare multipart form data payload
     const formData = new FormData();
     formData.append("file", resizedBuffer, {
       filename: originalName.replace(/\.[^/.]+$/, "") + ".jpg",
       contentType: "image/jpeg",
     });
 
-    // Send request to FastAPI Python service
     const response = await axios.post<PaddleOCRResponse>(
       "http://127.0.0.1:8000/ocr",
       formData,

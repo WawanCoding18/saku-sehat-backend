@@ -1,7 +1,7 @@
 import multer from "multer";
 import { Request } from "express";
 
-// 1. Simpan di RAM (Memory Storage) untuk pemrosesan cepat ke AI Service
+// 1. Simpan di RAM (Memory Storage)
 const storage = multer.memoryStorage();
 
 // 2. Filter Tipe File: Hanya mengizinkan format gambar yang didukung AI Vision
@@ -32,7 +32,7 @@ const fileFilter = (
 export const upload = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // Maksimal 5 MB (Mencegah error payload terlalu besar di Gemini/Groq)
+    fileSize: 5 * 1024 * 1024, // Maksimal 5 MB
   },
   fileFilter,
 });

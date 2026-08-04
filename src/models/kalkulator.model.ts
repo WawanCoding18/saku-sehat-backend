@@ -15,9 +15,6 @@ export interface ISimulasiPinjaman {
 //   analisisAI: string;
 }
 
-// ==========================================
-// 3. SCHEMA (Aturan & Validasi Mongoose/MongoDB)
-// ==========================================
 const SimulasiPinjamanSchema = new Schema<ISimulasiPinjaman>(
   {
     user: {
@@ -25,7 +22,7 @@ const SimulasiPinjamanSchema = new Schema<ISimulasiPinjaman>(
       ref: "User",
       required: true,
     },
-    // ===== INPUT DARI USER =====
+  
     jumlahPinjaman: {
       type: Number,
       required: true,
@@ -51,7 +48,7 @@ const SimulasiPinjamanSchema = new Schema<ISimulasiPinjaman>(
       type: Date,
       required: true,
     },
-    // ===== HASIL KALKULASI (dihitung backend, bukan input manual) =====
+  
     totalBunga: {
       type: Number,
       required: true,
@@ -79,13 +76,13 @@ const SimulasiPinjamanSchema = new Schema<ISimulasiPinjaman>(
     // },
   },
   {
-    timestamps: true, // Otomatis membuat field createdAt & updatedAt
+    timestamps: true, 
   }
 );
 
 
 const SimulasiPinjamanModel = mongoose.model<ISimulasiPinjaman>(
-  "SimulasiPinjaman",
+  "kalkulatorbunga",
   SimulasiPinjamanSchema
 );
 export default SimulasiPinjamanModel;

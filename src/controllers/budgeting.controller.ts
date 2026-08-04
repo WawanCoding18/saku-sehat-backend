@@ -38,7 +38,7 @@ export const postBudgeting = async (req: IReqUser, res: Response) => {
         .json({ message: "Tanggal Selesai harus setelah Tanggal Mulai" });
     }
 
-    // 4. 🔒 Cegah kategori yang sama dengan periode yang bentrok (overlap)
+    //Cegah kategori overlap(bentrok)
     const budgetBentrok = await BudgetingModel.findOne({
       user: userId,
       Kategori_Budget,
@@ -52,7 +52,7 @@ export const postBudgeting = async (req: IReqUser, res: Response) => {
       });
     }
 
-    // 5. Eksekusi Query ke Database (Model.create)
+    //Query ke Database
     const newBudgeting = await BudgetingModel.create({
       user: userId,
       Kategori_Budget,
@@ -61,7 +61,7 @@ export const postBudgeting = async (req: IReqUser, res: Response) => {
       Tanggal_Selesai: selesai,
     });
 
-    // 6. Kirim Response Sukses (201 Created)
+    //Kirim Response Sukses
     return res.status(201).json({
       message: "Berhasil menambahkan budget",
       data: newBudgeting,
@@ -84,7 +84,7 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
       createdAt: -1,
     });
 
-    // Hitung "terpakai" untuk tiap budget, berdasarkan transaksi di kategori & rentang tanggal yang sama
+    // Hitung terpakai untuk tiap budget, berdasarkan transaksi di kategori & rentang tanggal yang sama
     const formattedData = await Promise.all(
       listBudgeting.map(async (budget: any) => {
         const transaksiDalamPeriode = await TransaksiModel.find({
@@ -108,13 +108,13 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
             ? Number(((terpakai / budget.Batas_PerBulan) * 100).toFixed(0))
             : 0;
 
-        // Hitung sisa hari sampai Tanggal_Selesai
+        // Hitung sisa hari sampai Tanggal Selesai
         const today = new Date();
         const selesai = new Date(budget.Tanggal_Selesai);
         const selisihMs = selesai.getTime() - today.getTime();
         const sisaHari = Math.max(0, Math.ceil(selisihMs / (1000 * 60 * 60 * 24)));
 
-        // Tentukan status/badge berdasarkan persentase
+        //status/badge berdasarkan persentase
         let statusLabel = "Batas Aman";
         if (persentase >= 100) {
           statusLabel = "Melebihi Budget";
@@ -128,38 +128,35 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
           Batas_PerBulan: budget.Batas_PerBulan,
           Tanggal_Mulai: budget.Tanggal_Mulai,
           Tanggal_Selesai: budget.Tanggal_Selesai,
-          terpakai,          // ⬅️ hasil hitungan, bukan dari DB
-          tersisa,           // ⬅️ hasil hitungan
-          persentase,        // ⬅️ hasil hitungan
-          sisaHari,          // ⬅️ hasil hitungan
-          statusLabel,       // ⬅️ hasil hitungan
+          terpakai,          
+          tersisa,           
+          persentase,        
+          sisaHari,          
+          statusLabel,       
         };
       })
     );
 
-    // ============================================================
-    // SUMMARY (untuk 3 kartu dashboard atas)
-    // ============================================================
 
-    // [Total Budget] -> Total dari semua Batas_PerBulan
+    //Total dari semua Batas PerBulan
     const totalBudget = formattedData.reduce((acc, item) => {
       return acc + (item.Batas_PerBulan ?? 0);
     }, 0);
 
-    // [Pengeluaran] -> Total dari semua "terpakai"
+    //Total dari semua "terpakai"
     const totalPengeluaran = formattedData.reduce((acc, item) => {
       return acc + (item.terpakai ?? 0);
     }, 0);
 
-    // [Sisa Budget] -> Total Budget - Total Pengeluaran
+    //Sisa Budget -> Total Budget - Total Pengeluaran
     const sisaBudget = Math.max(0, totalBudget - totalPengeluaran);
 
     return res.status(200).json({
       message: "Berhasil mengambil data budgeting",
       summary: {
-        totalBudget,        // Kartu "Total Budget"
-        totalPengeluaran,   // Kartu "Pengeluaran"
-        sisaBudget,         // Kartu "Sisa Budget"
+        totalBudget,       
+        totalPengeluaran,   
+        sisaBudget,         
       },
       data: formattedData,
     });
@@ -170,7 +167,7 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
   }
 };
 
-// ✏️ UPDATE (Edit Budget berdasarkan ID)
+//Edit Budget berdasarkan ID
 export const updateBudgeting = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
@@ -182,16 +179,15 @@ export const updateBudgeting = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    // 1. Cari data budget milik user ini
+    //Cari data budget milik user ini
     const budget = await BudgetingModel.findOne({ _id: id, user: userId });
     if (!budget) {
       return res.status(404).json({ message: "Budget tidak ditemukan" });
     }
 
-    // type cast karena model mungkin memiliki typing berbeda
     const budgetAny: any = budget;
 
-    // 2. Ambil field yang boleh diubah (whitelist)
+    //Ambil field yang boleh diubah
     const { Kategori_Budget, Batas_PerBulan, Tanggal_Mulai, Tanggal_Selesai } =
       req.body || {};
 
@@ -203,7 +199,6 @@ export const updateBudgeting = async (req: IReqUser, res: Response) => {
       ? new Date(Tanggal_Selesai)
       : budgetAny.Tanggal_Selesai;
 
-    // 3. Validasi dasar
     if (!batasBaru || batasBaru <= 0) {
       return res.status(400).json({ message: "Batas per Bulan harus lebih dari 0" });
     }
@@ -216,9 +211,9 @@ export const updateBudgeting = async (req: IReqUser, res: Response) => {
         .json({ message: "Tanggal Selesai harus setelah Tanggal Mulai" });
     }
 
-    // 4. 🔒 Cegah bentrok dengan budget LAIN (kecuali dirinya sendiri)
+    //Cegah bentrok dengan budget LAIN (kecuali dirinya sendiri)
     const budgetBentrok = await BudgetingModel.findOne({
-      _id: { $ne: id }, // kecualikan data yang sedang di-edit
+      _id: { $ne: id },
       user: userId,
       Kategori_Budget: kategoriBaru,
       Tanggal_Mulai: { $lte: selesaiBaru },
@@ -231,7 +226,6 @@ export const updateBudgeting = async (req: IReqUser, res: Response) => {
       });
     }
 
-    // 5. Update field
     budgetAny.Kategori_Budget = kategoriBaru;
     budgetAny.Batas_PerBulan = batasBaru;
     budgetAny.Tanggal_Mulai = mulaiBaru;
@@ -250,7 +244,7 @@ export const updateBudgeting = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🗑️ DELETE (Hapus Budget berdasarkan ID)
+//Hapus Budget berdasarkan ID
 export const deleteBudgeting = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;

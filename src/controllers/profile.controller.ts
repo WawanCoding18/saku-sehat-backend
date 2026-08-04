@@ -3,7 +3,7 @@ import ProfileModel from "../models/profile.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import UserModel  from "../models/user.model";
 
-// 📋 GET ALL TRANSAKSI (Hanya milik user yang sedang login)
+//Hanya milik user yang sedang login
 export const postProfile = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -62,10 +62,9 @@ export const updateProfile = async (req: IReqUser, res: Response) => {
       return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    // 1. Ambil HANYA field yang diizinkan untuk diubah
+    //Ambil hanya field yang diizinkan untuk diubah
     const { username, fullName, fotoProfilUrl, sumberPemasukan } = req.body;
 
-    // 2. Update UserModel (hanya username & fullName)
     if (username || fullName) {
       await UserModel.findByIdAndUpdate(
         userId,
@@ -77,12 +76,12 @@ export const updateProfile = async (req: IReqUser, res: Response) => {
       );
     }
 
-    // 3. Susun payload khusus ProfileModel (hanya fotoProfilUrl & sumberPemasukan)
+    //Susun payload khusus ProfileModel
     const updateDataProfile: Record<string, any> = {};
     if (fotoProfilUrl !== undefined) updateDataProfile.fotoProfilUrl = fotoProfilUrl;
     if (sumberPemasukan !== undefined) updateDataProfile.sumberPemasukan = sumberPemasukan;
 
-    // 4. Update ProfileModel (🛠️ DIUBAH: Cukup cari berdasarkan { user: userId })
+    //Update ProfileModel
     const profile = await ProfileModel.findOneAndUpdate(
       { user: userId },
       updateDataProfile,

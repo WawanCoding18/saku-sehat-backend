@@ -3,10 +3,10 @@ import PinjamanModel from "../models/pinjaman.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 
 
-// 📝 CREATE (Tambah Data) — dibatasi maksimal 3 pinjaman per user
+//(Tambah Data) — dibatasi maksimal 3 pinjaman per user
 export const postPinjaman = async (req: IReqUser, res: Response) => {
   try {
-    // 1. Ambil ID User
+    
     const userId = req.user?.id;
     if (!userId) {
       return res
@@ -14,7 +14,6 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    // 2. 🔒 CEK LIMIT: maksimal 3 pinjaman per user
     const jumlahPinjaman = await PinjamanModel.countDocuments({ user: userId });
 
     if (jumlahPinjaman >= 3) {
@@ -24,7 +23,6 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
       });
     }
 
-    // 3. Ambil field dari body (input murni dari user)
     const { namaPlatform, jenisPinjaman, pinjamanAwal, tenorCicilan, persenBunga, jatuhTempo } =
       req.body;
 
@@ -32,7 +30,6 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
     const tenor = Number(tenorCicilan);
     const bunga = Number(persenBunga) || 0;
 
-    // 4. Validasi angka dasar biar nggak divide by zero / hasil aneh
     if (!nominalAwal || nominalAwal <= 0) {
       return res.status(400).json({ message: "Pinjaman Awal harus lebih dari 0" });
     }
@@ -40,16 +37,15 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
       return res.status(400).json({ message: "Tenor Cicilan harus lebih dari 0 bulan" });
     }
 
-    // [FITUR 2: CICILAN BULANAN] -> Rumus Bunga Tetap (Flat Rate)
     // Cicilan = (Pinjaman Awal / Tenor) + (Pinjaman Awal * (Bunga% / 100))
     const pokokBulanan = nominalAwal / tenor;
     const bungaBulanan = nominalAwal * (bunga / 100);
     const cicilanBulanan = pokokBulanan + bungaBulanan;
 
-    // [FITUR 3: SISA TAGIHAN] -> Nilai awal sama dengan Pinjaman Awal
+    //Nilai awal sama dengan Pinjaman Awal
     const sisaTagihan = nominalAwal;
 
-    // 5. Eksekusi Query ke Database
+    //Query ke Database
     const newPinjaman = await PinjamanModel.create({
       user: userId,
       namaPlatform,
@@ -57,12 +53,11 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
       pinjamanAwal: nominalAwal,
       tenorCicilan: tenor,
       persenBunga: bunga,
-      cicilanBulanan,       // ⬅️ hasil hitungan, bukan dari req.body
-      sisaTagihan,          // ⬅️ hasil hitungan, bukan dari req.body
+      cicilanBulanan,      
+      sisaTagihan,          
       jatuhTempo,
     });
 
-    // 6. Kirim Response Sukses (201 Created)
     return res.status(201).json({
       message: "Berhasil menambahkan data pinjaman",
       data: newPinjaman,
@@ -74,7 +69,7 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🧮 HELPER: Hitung data pinjaman (logic-only, dipakai bareng getAllPinjaman & dashboard)
+//Hitung data pinjaman
 export const hitungDataPinjaman = async (userId: string) => {
   const listPinjaman = await PinjamanModel.find({ user: userId }).sort({
     createdAt: -1,
@@ -128,7 +123,7 @@ export const hitungDataPinjaman = async (userId: string) => {
   };
 };
 
-// 📋 GET ALL (Ambil Semua Data)
+//Ambil Semua Data
 export const getAllPinjaman = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -142,11 +137,7 @@ export const getAllPinjaman = async (req: IReqUser, res: Response) => {
       createdAt: -1,
     });
 
-    // ============================================================
-    // FORMAT DATA PER-ITEM (untuk kartu list pinjaman)
-    // ============================================================
     const formattedData = listPinjaman.map((item) => {
-      // [FITUR 5: PROGRESS PEMBAYARAN (%)]
       const progress =
         item.pinjamanAwal > 0
           ? ((item.pinjamanAwal - item.sisaTagihan) / item.pinjamanAwal) * 100
@@ -166,22 +157,19 @@ export const getAllPinjaman = async (req: IReqUser, res: Response) => {
       };
     });
 
-    // ============================================================
-    // SUMMARY (untuk 3 kartu dashboard atas)
-    // ============================================================
 
-    // [FITUR 1: BELUM DIBAYAR] -> Total dari semua sisaTagihan
+    //Total dari semua sisaTagihan
     const belumDibayar = listPinjaman.reduce((acc, item) => {
       return acc + (item.sisaTagihan ?? 0);
     }, 0);
 
-    // [FITUR 2: SUDAH DIBAYAR] -> Total uang pokok yang sudah terbayar
+    //Total uang pokok yang sudah terbayar
     const sudahDibayar = listPinjaman.reduce((acc, item) => {
       const terbayarPerItem = (item.pinjamanAwal ?? 0) - (item.sisaTagihan ?? 0);
       return acc + terbayarPerItem;
     }, 0);
 
-    // [FITUR 3: KEWAJIBAN PERBULAN] -> Total cicilanBulanan dari pinjaman yang belum lunas
+    //Total cicilanBulanan dari pinjaman yang belum lunas
     const kewajibanPerbulan = listPinjaman.reduce((acc, item) => {
       if (item.sisaTagihan > 0) {
         return acc + (item.cicilanBulanan ?? 0);
@@ -189,9 +177,6 @@ export const getAllPinjaman = async (req: IReqUser, res: Response) => {
       return acc;
     }, 0);
 
-    // ============================================================
-    // KIRIM RESPONSE GABUNGAN
-    // ============================================================
     return res.status(200).json({
       message: "Berhasil mengambil data pinjaman",
       summary: {
@@ -221,26 +206,24 @@ export const putPinjaman = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    // 1. Cari data pinjaman milik user ini
+    //Cari data pinjaman milik user ini
     const pinjaman = await PinjamanModel.findOne({ _id: id, user: userId });
     if (!pinjaman) {
       return res.status(404).json({ message: "Pinjaman tidak ditemukan" });
     }
 
-    // 2. Cegah bayar cicilan kalau pinjaman sudah lunas
+    //Cegah bayar cicilan kalau pinjaman sudah lunas
     if (pinjaman.statusPinjaman === "Lunas") {
       return res
         .status(400)
         .json({ message: "Pinjaman ini sudah lunas, tidak bisa dibayar lagi" });
     }
 
-    // [FITUR 3: SISA TAGIHAN UPDATE]
     const sisaTagihanBaru = Math.max(
       0,
       pinjaman.sisaTagihan - pinjaman.cicilanBulanan
     );
 
-    // [FITUR 4: JATUH TEMPO UPDATE] -> Maju 1 bulan
     const tglSekarang = new Date(pinjaman.jatuhTempo);
     const jatuhTempoBaru = new Date(
       tglSekarang.setMonth(tglSekarang.getMonth() + 1)
@@ -249,14 +232,14 @@ export const putPinjaman = async (req: IReqUser, res: Response) => {
     pinjaman.sisaTagihan = sisaTagihanBaru;
     pinjaman.jatuhTempo = jatuhTempoBaru;
 
-    // 3. Kalau sisa tagihan sudah 0, tandai lunas
+    //Kalau sisa tagihan sudah 0, tandai lunas
     if (sisaTagihanBaru === 0) {
       pinjaman.statusPinjaman = "Lunas";
     }
 
     await pinjaman.save();
 
-    // 4. Kirim Response Sukses (200 OK)
+    //Kirim Response Sukses (200 OK)
     return res.status(200).json({
       message: "Pembayaran cicilan berhasil",
       data: pinjaman,
@@ -268,7 +251,7 @@ export const putPinjaman = async (req: IReqUser, res: Response) => {
   }
 };
 
-// ✏️ EDIT DATA PINJAMAN (bukan aksi bayar, hanya ubah info dasar)
+//Edit data bukan aksi bayar, hanya ubah info dasar
 export const editPinjaman = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
@@ -280,15 +263,12 @@ export const editPinjaman = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    // 1. Cari data pinjaman milik user ini
+    //Cari data pinjaman milik user ini
     const pinjaman = await PinjamanModel.findOne({ _id: id, user: userId });
     if (!pinjaman) {
       return res.status(404).json({ message: "Pinjaman tidak ditemukan" });
     }
 
-    // 2. 🔒 Whitelist field yang BOLEH diubah lewat endpoint ini
-    // sengaja TIDAK termasuk sisaTagihan & statusPinjaman,
-    // karena dua field itu hanya boleh berubah lewat proses bayar cicilan (putPinjaman)
     const {
       namaPlatform,
       jenisPinjaman,
@@ -298,7 +278,7 @@ export const editPinjaman = async (req: IReqUser, res: Response) => {
       jatuhTempo,
     } = req.body;
 
-    // 3. Kalau ada perubahan pinjamanAwal/tenor/bunga, hitung ulang cicilanBulanan
+    //Kalau ada perubahan pinjamanAwal/tenor/bunga, hitung ulang cicilanBulanan
     const nominalAwal =
       pinjamanAwal !== undefined ? Number(pinjamanAwal) : pinjaman.pinjamanAwal;
     const tenor =
@@ -317,7 +297,7 @@ export const editPinjaman = async (req: IReqUser, res: Response) => {
     const bungaBulanan = nominalAwal * (bunga / 100);
     const cicilanBulananBaru = pokokBulanan + bungaBulanan;
 
-    // 4. Update field yang diizinkan
+    //Update field yang diizinkan
     if (namaPlatform !== undefined) pinjaman.namaPlatform = namaPlatform;
     if (jenisPinjaman !== undefined) pinjaman.jenisPinjaman = jenisPinjaman;
     if (jatuhTempo !== undefined) pinjaman.jatuhTempo = jatuhTempo;
@@ -340,13 +320,13 @@ export const editPinjaman = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🗑️ DELETE (Hapus Data berdasarkan ID)
+
 export const deletePinjaman = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
 
-    // 1. Cari & Hapus Data (Model.findOneAndDelete)
+    //Cari & Hapus Data (Model.findOneAndDelete)
     const deletedData = await PinjamanModel.findOneAndDelete({
       _id: id,
       user: userId,
@@ -358,7 +338,7 @@ export const deletePinjaman = async (req: IReqUser, res: Response) => {
         .json({ message: "Data pinjaman tidak ditemukan atau bukan milik Anda" });
     }
 
-    // 2. Kirim Response Sukses (200 OK)
+    //Kirim Response Sukses (200 OK)
     return res.status(200).json({
       message: "Berhasil menghapus data pinjaman",
     });

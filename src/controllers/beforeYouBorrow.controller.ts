@@ -1,18 +1,10 @@
-// ==========================================
-// 1. IMPORT
-// ==========================================
 import { Response } from "express";
 import BeforeYouBorrowModel from "../models/beforeYouBorrow.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 
-// ==========================================
-// 2. CONTROLLER FUNCTIONS
-// ==========================================
-
-// 📝 CREATE (Simpan Data Before You Borrow)
 export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
   try {
-    // 1. Ambil ID User
+  
     const userId = req.user?.id;
     if (!userId) {
       return res
@@ -35,7 +27,7 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
     const pengeluaran = Number(Pengeluaran_PerBulan);
     const pinjamanSaatIni = Number(Nominal_Pinjaman_Saat_Ini) || 0;
 
-    // 3. Validasi input dasar
+    // Validasi input dasar
     if (!Nama_Platform) {
       return res.status(400).json({ message: "Nama Platform wajib diisi" });
     }
@@ -52,7 +44,7 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
       return res.status(400).json({ message: "Pengeluaran per Bulan tidak valid" });
     }
 
-    // 4. Eksekusi Query ke Database (Model.create)
+    //Query ke Database
     const newBeforeYouBorrow = await BeforeYouBorrowModel.create({
       user: userId,
       Nama_Platform,
@@ -61,10 +53,10 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
       Pemasukan_PerBulan: pemasukan,
       Pengeluaran_PerBulan: pengeluaran,
       Nominal_Pinjaman_Saat_Ini: pinjamanSaatIni,
-      // hasilAsesmen & levelKelayakan sengaja tidak diisi dulu (fitur AI menyusul)
+      //fitur AI menyusul
     });
 
-    // 5. Kirim Response Sukses (201 Created)
+    //Kirim Response Sukses
     return res.status(201).json({
       message: "Berhasil menyimpan data Before You Borrow",
       data: newBeforeYouBorrow,

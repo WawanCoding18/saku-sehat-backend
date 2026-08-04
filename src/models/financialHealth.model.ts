@@ -1,13 +1,12 @@
-// src/models/financialHealth.model.ts
 import mongoose from "mongoose";
 
 export interface ISubScore {
-  skor: number;              // misal 17, dari 25
-  maksimal: number;          // 25
-  persentase: number;        // 40% (nilai kamu : X dari Y)
+  skor: number;              
+  maksimal: number;          
+  persentase: number;       
   status: "Excellent" | "Good" | "Perlu Perhatian" | "Buruk";
-  ringkasan: string;         // teks penjelasan ("Semua pengeluaran bulan ini masih sesuai...")
-  saranPerkembangan: string[]; // array bullet saran, boleh kosong dulu (AI diabaikan sementara)
+  ringkasan: string;         
+  saranPerkembangan: string[]; 
 }
 
 export interface IFinancialHealth {
@@ -32,7 +31,7 @@ const SubScoreSchema = new mongoose.Schema<ISubScore>(
     ringkasan: { type: String, required: true },
     saranPerkembangan: { type: [String], default: [] },
   },
-  { _id: false } // sub-dokumen, tidak perlu _id sendiri
+  { _id: false } 
 );
 
 const FinancialHealthSchema = new mongoose.Schema<IFinancialHealth>(
@@ -41,7 +40,7 @@ const FinancialHealthSchema = new mongoose.Schema<IFinancialHealth>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true, // 1 user cuma punya 1 record Financial Health yang terus di-update
+      unique: true,
     },
     skorTotal: { type: Number, required: true, min: 0, max: 100 },
     grade: {
@@ -53,7 +52,7 @@ const FinancialHealthSchema = new mongoose.Schema<IFinancialHealth>(
     disiplinAnggaran: { type: SubScoreSchema, required: true },
     pengelolaanPinjaman: { type: SubScoreSchema, required: true },
   },
-  { timestamps: true } // updatedAt otomatis jadi "Terakhir di update"
+  { timestamps: true } 
 );
 
 const FinancialHealthModel = mongoose.model<IFinancialHealth>(

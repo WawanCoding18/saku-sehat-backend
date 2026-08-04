@@ -60,13 +60,9 @@ const UserSchema = new mongoose.Schema<User>(
   }
 );
 
-// Pre-save hook — hanya encrypt password
-// Hapus bagian activation, OTP di-generate di controller
 UserSchema.pre("save", function (next) {
   const user = this;
 
-  // Hanya encrypt kalau password baru / diubah
-  // supaya tidak di-encrypt dua kali
   if (user.isModified("password")) {
     user.password = encrypt(user.password);
   }

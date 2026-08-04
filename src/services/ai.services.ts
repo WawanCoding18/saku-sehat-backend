@@ -53,7 +53,7 @@ const attemptProvider = async (
           hasSentChunk = true;
         }
       } catch (e) {
-        // abaikan potongan SSE yang parsial
+   
       }
     }
 
@@ -65,13 +65,13 @@ const attemptProvider = async (
   console.log(`==================================================`);
 
   try {
-    // 1. Jalankan proses streaming sampai SELESAI total
+    //Jalankan proses streaming sampai SELESAI total
     await streamFunctions[provider](message, res);
 
-    // 2. SETELAH STREAM SELESAI, baru gabungan teks lengkap di-parse ke JSON
+
     let validResult: any;
     try {
-      // Bersihkan jika ada sisa markdown codeblock dari AI
+ 
       const cleanJsonStr = fullAnswerText
         .replace(/^```json\s*/i, '')
         .replace(/^```\s*/i, '')
@@ -102,10 +102,11 @@ const attemptProvider = async (
     );
     return { success: false, hasSentChunk, error };
   } finally {
-    // Kembalikan fungsi res.write ke bentuk aslinya
+    //fungsi res.write ke bentuk aslinya
     res.write = originalWrite;
   }
 };
+
 // Stream Teks
 export const askAIStream = async (
   message: string,

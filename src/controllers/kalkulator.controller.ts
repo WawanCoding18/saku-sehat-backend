@@ -1,18 +1,12 @@
-// ==========================================
-// 1. IMPORT
-// ==========================================
 import { Request, Response } from "express";
 import SimulasiPinjamanModel from "../models/kalkulator.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 
-// ==========================================
-// 2. CONTROLLER FUNCTIONS
-// ==========================================
 
-// 📝 CREATE (Hitung & Simpan Simulasi Kalkulator Bunga)
+//Hitung & Simpan Simulasi Kalkulator Bunga
 export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
   try {
-    // 1. Ambil ID User
+  
     const userId = req.user?.id;
     if (!userId) {
       return res
@@ -20,7 +14,6 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    // 2. Ambil input dari body
     const { jumlahPinjaman, bungaPerBulan, tenorCicilan, dendaPerHari, deadlineTarget } =
       req.body;
 
@@ -29,7 +22,6 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
     const tenor = Number(tenorCicilan);
     const denda = Number(dendaPerHari) || 0;
 
-    // 3. Validasi input dasar
     if (!pokok || pokok <= 0) {
       return res.status(400).json({ message: "Jumlah Pinjaman harus lebih dari 0" });
     }
@@ -40,7 +32,7 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
       return res.status(400).json({ message: "Tenor Cicilan harus lebih dari 0 bulan" });
     }
 
-    // 4. 🧮 RUMUS KALKULASI (Bunga Flat Rate per Bulan)
+    //RUMUS KALKULASI (Bunga Flat Rate per Bulan)
     // Total Bunga = Pokok * (Bunga% / 100) * Tenor
     const totalBunga = pokok * (bunga / 100) * tenor;
 
@@ -54,7 +46,7 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
     const bungaEfektifTahunan =
       (Math.pow(1 + bunga / 100, 12) - 1) * 100;
 
-    // 5. Eksekusi Query ke Database (Model.create)
+    //Query ke Database
     const newSimulasi = await SimulasiPinjamanModel.create({
       user: userId,
       jumlahPinjaman: pokok,
@@ -69,7 +61,6 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
       // levelRisiko & analisisAI sengaja tidak diisi dulu (fitur AI menyusul)
     });
 
-    // 6. Kirim Response Sukses (201 Created)
     return res.status(201).json({
       message: "Berhasil menghitung dan menyimpan simulasi",
       data: newSimulasi,
@@ -81,7 +72,6 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 📋 GET ALL (Ambil Semua Riwayat Simulasi — hanya 4 field hasil kalkulasi)
 export const getAllKalkulatorBunga = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;

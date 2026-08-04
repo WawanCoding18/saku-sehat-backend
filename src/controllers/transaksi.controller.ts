@@ -37,7 +37,7 @@ export const createTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🧮 HELPER: Hitung data transaksi (logic-only, dipakai bareng getAllTransaksi & dashboard)
+//Hitung data transaksi
 export const hitungDataTransaksi = async (userId: string, type?: string) => {
   const allTransaksi = await TransaksiModel.find({ user: userId });
   const totalPemasukan = allTransaksi
@@ -72,13 +72,13 @@ export const hitungDataTransaksi = async (userId: string, type?: string) => {
   };
 };
 
-// 📋 GET ALL TRANSAKSI (Hanya milik user yang sedang login)
+//Hanya milik user yang sedang login
 export const getAllTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
     const { type } = req.query;
 
-    // 1. Ambil SEMUA transaksi user untuk menghitung Saldo & Ringkasan Utama
+    // Ambil semua transaksi user untuk menghitung Saldo & Ringkasan Utama
     const allTransaksi = await TransaksiModel.find({ user: userId });
     const totalPemasukan = allTransaksi
       .filter((t) => t.tipe === "pemasukan")
@@ -93,7 +93,7 @@ export const getAllTransaksi = async (req: IReqUser, res: Response) => {
     );
     const saldo = (saldoAwal?.saldoSekarang ?? 0) + totalPemasukan - totalPengeluaran;
 
-    // 2. Filter untuk list History di bawah (jika tombol filter Pemasukan/Pengeluaran diklik)
+    //Filter untuk list History di bawah (jika tombol filter Pemasukan/Pengeluaran diklik)
     const filter: any = { user: userId };
     if (type) {
       filter.tipe = type;
@@ -103,7 +103,7 @@ export const getAllTransaksi = async (req: IReqUser, res: Response) => {
       tanggal: -1,
     });
 
-    // 3. Kirim ringkasan + list history sekaligus
+    //Kirim ringkasan + list history sekaligus
     return res.status(200).json({
       summary: {
         saldo,
@@ -120,12 +120,10 @@ export const getAllTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🔍 GET TRANSAKSI BY ID
 export const getTransaksiById = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
 
-    // 🔒 Cari berdasarkan ID transaksi DAN ID user
     const transaksi = await TransaksiModel.findOne({
       _id: req.params.id,
       user: userId,
@@ -143,7 +141,7 @@ export const getTransaksiById = async (req: IReqUser, res: Response) => {
   }
 };
 
-// ✏️ UPDATE TRANSAKSI
+
 export const updateTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -173,39 +171,52 @@ export const updateTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🗑️ DELETE TRANSAKSI
+
+//delete transaksi menggunakan konsep ACID (Atomicity, Consistency, Isolation, Durability) untuk memastikan integritas data.
 export const deleteTransaksi = async (req: IReqUser, res: Response) => {
+  const session = await TransaksiModel.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
     const userId = req.user?.id;
 
-    // 1. Cari transaksi yang mau dihapus terlebih dahulu
-    const transaksi = await TransaksiModel.findOne({ _id: id, user: userId });
+    //Cari transaksi yang mau dihapus terlebih dahulu
+    const transaksi = await TransaksiModel.findOne({ _id: id, user: userId }).session(session);
     if (!transaksi) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: "Transaksi tidak ditemukan" });
     }
 
-    // 2. Ambil Profile
-    const profile = await ProfileModel.findOne({ user: userId });
+    //Ambil Profile
+    const profile = await ProfileModel.findOne({ user: userId }).session(session);
 
     if (profile) {
-      // 3. Balikkan nilai saldo
+      // Balikkan nilai saldo
       if (transaksi.tipe === "pemasukan") {
-        profile.saldoSekarang -= transaksi.nominal; // Pemasukan batal, saldo berkurang
+        profile.saldoSekarang -= transaksi.nominal; 
       } else if (transaksi.tipe === "pengeluaran") {
-        profile.saldoSekarang += transaksi.nominal; // Pengeluaran batal, saldo kembali
+        profile.saldoSekarang += transaksi.nominal; 
       }
-
+      await profile.save({ session }); 
     }
 
-    // 4. Hapus transaksi dari DB
-    await TransaksiModel.findByIdAndDelete(id);
+  
+    await TransaksiModel.findByIdAndDelete(id).session(session);
+
+    //Semua berhasil, commit transaction
+    await session.commitTransaction();
+    session.endSession();
 
     return res.status(200).json({
       message: "Transaksi berhasil dihapus",
       saldoBaru: profile?.saldoSekarang,
     });
   } catch (error) {
+    // Kalau ada langkah manapun yang gagal, batalkan semua perubahannya
+    await session.abortTransaction();
+    session.endSession();
     return res.status(500).json({ message: "Gagal menghapus transaksi", error: String(error) });
   }
 };

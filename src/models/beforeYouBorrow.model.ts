@@ -57,7 +57,6 @@ const BeforeYouBorrowSchema = new mongoose.Schema<IBeforeYouBorrow>(
       required: true,
       min: 0,
     },
-    // ===== HASIL ASESMEN AI (opsional dulu, menyusul) =====
     // hasilAsesmen: {
     //   type: String,
     //   required: false,

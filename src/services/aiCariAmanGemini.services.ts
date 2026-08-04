@@ -3,17 +3,15 @@ import { aiConfig } from "../utils/config/ai.config";
 import { GoogleGenAI } from "@google/genai";
 import { FULL_SYSTEM_INSTRUCTION_OJK } from "../utils/OJK.prompts";
 
-// Client khusus Teks & Gambar (menggunakan API Key dari masing-masing config)
+// Client khusus Teks & Gambar dengan menggunakan API Key dari masing-masing config
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
-// const aiImage = new GoogleGenAI({ apiKey: aiConfigImage.gemini.apiKey });
 
-// ==== 1. STREAM GEMINI TEKS ====
 export const streamGemini = async (
   message: string,
   ojkMatchStatus: string,
   res: any
 ): Promise<void> => {
-  // 🔍 [DEBUG DATA TEXT]
+ 
   const totalChars = (message?.length || 0) + FULL_SYSTEM_INSTRUCTION_OJK.length;
   const estimatedTokens = Math.ceil(totalChars / 3.5);
 
@@ -30,7 +28,7 @@ export const streamGemini = async (
   console.log("--------------------------------------------------");
 
   const responseStream = await aiText.models.generateContentStream({
-    model: aiConfig.gemini.model, // 👈 Menggunakan model config teks
+    model: aiConfig.gemini.model, 
     contents: `Teks/hasil OCR yang diterima pengguna:\n"""${message}"""\n\nVariabel ojk_match_status dari backend: ${ojkMatchStatus}`,
     config: {
       systemInstruction: FULL_SYSTEM_INSTRUCTION_OJK,

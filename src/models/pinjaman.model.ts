@@ -46,5 +46,5 @@ const PinjamanSchema = new Schema<IPinjaman>(
   { timestamps: true }
 );
 
-const PinjamanModel = mongoose.model<IPinjaman>("pinjaman", PinjamanSchema);
+const PinjamanModel = mongoose.model<IPinjaman>("kelolapinjaman", PinjamanSchema);
 export default PinjamanModel;

@@ -1,6 +1,3 @@
-// ==========================================
-// 1. IMPORT
-// ==========================================
 import { Response } from "express";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import FinancialHealthModel from "../models/financialHealth.model";
@@ -8,9 +5,7 @@ import BudgetingModel from "../models/budgeting.model";
 import PinjamanModel from "../models/pinjaman.model";
 import TransaksiModel from "../models/transaksi.model";
 
-// ==========================================
-// 2. HELPER: Hitung sub-score Disiplin Anggaran
-// ==========================================
+
 const hitungDisiplinAnggaran = async (userId: string) => {
   const listBudgeting = await BudgetingModel.find({ user: userId });
 
@@ -65,13 +60,11 @@ const hitungDisiplinAnggaran = async (userId: string) => {
   };
 };
 
-// ==========================================
-// 3. HELPER: Hitung sub-score Pengelolaan Pinjaman
-// ==========================================
+
 const hitungPengelolaanPinjaman = async (userId: string) => {
   const listPinjaman = await PinjamanModel.find({ user: userId });
 
-  // Ambil total pemasukan (pakai transaksi 30 hari terakhir sebagai proxy pemasukan bulanan)
+  // Ambil total pemasukan pakai transaksi 30 hari terakhir sebagai pemasukan bulanan
   const tigaPuluhHariLalu = new Date();
   tigaPuluhHariLalu.setDate(tigaPuluhHariLalu.getDate() - 30);
 
@@ -97,7 +90,7 @@ const hitungPengelolaanPinjaman = async (userId: string) => {
     return acc;
   }, 0);
 
-  // Rasio cicilan terhadap pemasukan (DTI - Debt to Income ratio)
+  // Rasio cicilan terhadap pemasukan
   const rasioDTI = totalPemasukan > 0 ? kewajibanPerbulan / totalPemasukan : 1;
 
   let skor: number;
@@ -129,9 +122,7 @@ const hitungPengelolaanPinjaman = async (userId: string) => {
   return { skor, maksimal: 50, persentase, status, ringkasan };
 };
 
-// ==========================================
-// 4. HELPER: Tentukan Grade dari Skor Total
-// ==========================================
+
 const tentukanGrade = (skorTotal: number): "A" | "B" | "C" | "D" | "E" => {
   if (skorTotal >= 85) return "A";
   if (skorTotal >= 70) return "B";
@@ -140,9 +131,6 @@ const tentukanGrade = (skorTotal: number): "A" | "B" | "C" | "D" | "E" => {
   return "E";
 };
 
-// ==========================================
-// 5. HELPER: Hitung & Simpan Financial Health (dipakai bareng GET & POST)
-// ==========================================
 export const hitungDanSimpanFinancialHealth = async (userId: string) => {
   const disiplinAnggaran = await hitungDisiplinAnggaran(userId);
   const pengelolaanPinjaman = await hitungPengelolaanPinjaman(userId);
@@ -150,7 +138,7 @@ export const hitungDanSimpanFinancialHealth = async (userId: string) => {
   const skorTotal = disiplinAnggaran.skor + pengelolaanPinjaman.skor;
   const grade = tentukanGrade(skorTotal);
 
-  // Upsert: kalau sudah ada record untuk user ini, timpa. Kalau belum, buat baru.
+  //kalau sudah ada record untuk user ini, timpa. Kalau belum, buat baru.
   const financialHealth = await FinancialHealthModel.findOneAndUpdate(
     { user: userId },
     {
@@ -166,9 +154,7 @@ export const hitungDanSimpanFinancialHealth = async (userId: string) => {
   return financialHealth;
 };
 
-// ==========================================
-// 6. CONTROLLER: GET — hitung ulang, tapi balikin ringkas saja
-// ==========================================
+
 export const getFinancialHealth = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -193,9 +179,6 @@ export const getFinancialHealth = async (req: IReqUser, res: Response) => {
   }
 };
 
-// ==========================================
-// 7. CONTROLLER: POST — hitung ulang, balikin detail lengkap
-// ==========================================
 export const postFinancialHealth = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;

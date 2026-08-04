@@ -7,7 +7,6 @@ import { getFullSystemInstruction } from "../utils/prompts";
 // Client khusus Teks (menggunakan API Key dari config)
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
 
-// ==== 1. STREAM GEMINI TEKS ====
 export const streamGemini = async (
   message: string,
   res: any,
@@ -18,7 +17,6 @@ export const streamGemini = async (
   const userMsgLength = message?.length || 0;
   const systemPromptLength = dynamicSystemInstruction?.length || 0;
 
-  // 🔍 [DEBUG DATA TEXT]
   const totalChars = userMsgLength + systemPromptLength;
   const estimatedTokens = Math.ceil(totalChars / 3.5);
 
@@ -36,7 +34,7 @@ export const streamGemini = async (
     config: {
       systemInstruction: dynamicSystemInstruction,
       responseMimeType: "application/json",
-      // 🔒 Mengunci struktur output dengan Schema bawaan SDK Gemini
+      //Mengunci struktur output dengan Schema bawaan SDK Gemini
       responseSchema: {
         type: Type.OBJECT,
         properties: {
@@ -101,7 +99,7 @@ export const streamGemini = async (
           "tanggal",
         ],
       },
-      temperature: 0.0, // 👈 Zero temperature agar AI tidak halusinasi
+      temperature: 0.0,
       maxOutputTokens: 2048,
     },
   });

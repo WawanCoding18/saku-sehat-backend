@@ -1,5 +1,4 @@
 import { OjkLegalListModel } from "../models/ojk.model";
-// ✅ CORRECT (Lowercase 'f')
 import Fuse from "fuse.js";
 
 export type OjkMatchedEntity = {
@@ -14,7 +13,6 @@ export type OjkLookupResult = {
   matched_entities: OjkMatchedEntity[];
 };
 
-// Cache in-memory agar tidak hit DB & re-build Fuse tiap request
 let cachedPlatforms: any[] = [];
 let fuseInstance: Fuse<any> | null = null;
 let lastFetchTime = 0;
@@ -25,7 +23,7 @@ async function getOjkDataAndFuse() {
   const now = Date.now();
 
   if (!fuseInstance || now - lastFetchTime > CACHE_TTL) {
-    // Race condition guard: kalau sedang fetch, tunggu dan pakai cache lama
+    //kalau sedang fetch, tunggu dan pakai cache lama
     if (isFetching) {
       await new Promise((resolve) => setTimeout(resolve, 100));
       if (fuseInstance) return { allPlatforms: cachedPlatforms, fuse: fuseInstance };
