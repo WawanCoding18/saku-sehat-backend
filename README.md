@@ -2,28 +2,37 @@
 
 ## Deskripsi
 
-Saku Sehat adalah platform financial health monitoring berbasis website yang membantu mahasiswa mengelola keuangan, memahami risiko pinjaman online/paylater, dan meningkatkan literasi keuangan. Project ini mengintegrasikan LLM (Gemini 3.1 Flash Lite & Groq GPT-OSS 20B) dan OCR (Tesseract.js) untuk mendukung fitur pencatatan transaksi (manual & scan struk), kalkulator transparansi bunga, penilaian rencana peminjaman (Before You Borrow), serta deteksi pinjol/penipuan dari teks SMS/WhatsApp (Pinjol Detector).
+Saku Sehat adalah backend project financial health monitoring yang dirancang untuk membantu mahasiswa dan pengguna umum mengelola keuangan pribadi, memantau transaksi, menilai risiko pinjaman online, dan meningkatkan literasi finansial.
 
-Backend dibangun menggunakan Express.js dan TypeScript dengan MongoDB sebagai basis data, dilengkapi autentikasi JWT dan mekanisme round-robin fallback antar penyedia AI untuk menjaga keandalan sistem saat salah satu API mengalami gangguan.
+Aplikasi ini menggunakan:
 
-Project ini dirancang untuk memudahkan integrasi dengan frontend dan menyediakan dokumentasi API yang mudah diakses melalui Swagger.
+- Express.js dan TypeScript sebagai fondasi server,
+- MongoDB/Mongoose untuk penyimpanan data,
+- JWT untuk autentikasi,
+- Swagger untuk dokumentasi API,
+- Tesseract.js dan layanan OCR untuk ekstraksi data struk,
+- Integrasi AI (Gemini & Groq) untuk fitur analisis dan pemberian rekomendasi.
 
+Backend ini menyediakan endpoint untuk autentikasi, profil pengguna, catatan transaksi, pinjaman, kalkulator bunga, budgeting, penilaian "Before You Borrow", deteksi risiko, dan dashboard financial health.
 
-## Fitur yang Baru Jadi
+## Fitur yang Sudah Jadi
 
 - Autentikasi pengguna dengan JWT
-- Register dan login pengguna dengan validasi input
-- Pengelolaan profil pengguna dan onboarding profile
-- CRUD transaksi keuangan per user yang sedang login
-- Fitur OCR untuk memindai gambar transaksi dan mengekstrak data dengan bantuan AI
-- Fitur mengisi dan mengedit Profile user.
-- Dokumentasi API otomatis menggunakan Swagger
-- Koneksi ke MongoDB melalui Mongoose
-- Dukungan CORS untuk integrasi frontend
+- Register, login, dan verifikasi OTP
+- Onboarding profil pengguna dan pembaruan profil
+- CRUD transaksi keuangan per pengguna
+- Upload dan pemrosesan OCR struk transaksi
+- Manajemen pinjaman online dengan pembayaran dan pengeditan
+- Kalkulator bunga cicilan untuk membantu perhitungan pinjaman
+- Budgeting dan pencatatan anggaran keuangan
+- Fitur "Before You Borrow" untuk menilai kelayakan pinjaman
+- Fitur "Cari Aman" untuk membantu deteksi risiko pinjaman/penipuan
+- Dashboard financial health yang mengumpulkan metrik keuangan pengguna
+- Swagger UI API documentation di `/api-docs`
 
 ## Preview
 
-Berikut contoh beberapa endpoint yang tersedia di backend ini.
+Berikut beberapa endpoint utama dengan contoh request, response, dan validasi.
 
 ### 1. Register User
 
@@ -64,9 +73,9 @@ Validasi:
 
 - `fullName` wajib diisi
 - `username` wajib diisi
-- `email` harus format email yang valid
+- `email` harus format email valid
 - `password` minimal 6 karakter
-- `password` harus mengandung minimal 1 huruf besar dan 1 angka
+- `password` harus mengandung huruf besar dan angka
 - `confirmPassword` harus sama dengan `password`
 
 ### 2. Login User
@@ -94,6 +103,7 @@ Response berhasil:
   "data": "<jwt-token>"
 }
 ```
+
 ### 3. Create Profile
 
 Endpoint:
@@ -134,7 +144,6 @@ Response berhasil:
   }
 }
 ```
-
 
 ### 4. Create Transaction
 
@@ -179,9 +188,9 @@ Response berhasil:
 
 Validasi:
 
-- `tipe` biasanya berupa `pengeluaran` atau `pemasukan`
-- `nominal` wajib berupa angka
-- `tanggal` jika tidak dikirim akan otomatis menggunakan tanggal saat ini
+- `tipe` diharapkan `pengeluaran` atau `pemasukan`
+- `nominal` wajib angka
+- `tanggal` default ke tanggal saat ini jika tidak dikirim
 
 ### 5. OCR Scan Transaction
 
@@ -197,6 +206,148 @@ Header:
 Content-Type: multipart/form-data
 Authorization: Bearer <jwt-token>
 ```
+
+Conten form-data:
+
+- `image`: file gambar struk transaksi
+
+Response berhasil biasanya berisi hasil ekstraksi teks dan data transaksi yang diambil dari gambar.
+
+### 6. Dokumentasi API
+
+Akses dokumentasi Swagger di:
+
+```text
+GET /api-docs
+```
+
+## Project Structure
+
+```
+src/
+  index.ts              # Entry point Express server
+  routes/api.ts         # Semua route utama API
+  controllers/          # Logika bisnis per endpoint
+  middlewares/          # Middleware autentikasi, upload, validasi
+  models/               # Skema Mongoose untuk MongoDB
+  services/             # Layanan AI, OCR, dan integrasi eksternal
+  utils/                # Utilitas database, env, jwt, konfigurasi
+  docs/                 # Swagger docs dan route dokumentasi
+  prompts/              # Prompt AI dan knowledge base
+```
+
+Folder penting:
+
+- `src/index.ts`: konfigurasi server, CORS, route, dan Swagger
+- `src/routes/api.ts`: rute API inti termasuk auth, profile, transaksi, pinjaman, budgeting, kalkulator, dan dashboard
+- `src/controllers/`: implementasi endpoint dan logika request/response
+- `src/models/`: definisi data MongoDB untuk user, transaksi, profil, pinjaman, dan fitur lainnya
+- `src/utils/env.ts`: pemuatan variabel environment
+- `src/docs/route.ts`: konfigurasi Swagger UI untuk dokumentasi API
+
+## Tech Stack
+
+- Node.js 22.x
+- TypeScript
+- Express.js
+- MongoDB dengan Mongoose
+- JSON Web Token (JWT)
+- Swagger / swagger-ui-express
+- Tesseract.js untuk OCR
+- @google/genai dan Groq GPT untuk fitur AI
+- multer untuk upload file
+- dotenv untuk environment variables
+- cors untuk integrasi frontend
+
+## Local Setup
+
+### Prasyarat
+
+- Node.js 22.x
+- npm atau yarn
+- MongoDB lokal atau MongoDB Atlas
+- Git (opsional untuk clone repository)
+
+### Langkah Setup
+
+1. Clone repository:
+
+```bash
+git clone <repo-url>
+cd back-end-acara
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Buat file `.env` di root project dan isi variabel berikut:
+
+```env
+DATABASE_URL=mongodb://localhost:27017/back-end-acara
+SECRET=your_jwt_secret
+EMAIL_FROM=youremail@example.com
+EMAIL_APP_PASSWORD=your-email-app-password
+CLIENT_HOST=http://localhost:3000
+GEMINI_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
+MODAL_OCR_URL=https://your-ocr-service-url
+```
+
+4. Jalankan server development:
+
+```bash
+npm run dev
+```
+
+5. Buka browser di:
+
+```text
+http://localhost:4000
+```
+
+6. Akses dokumentasi API di:
+
+```text
+http://localhost:4000/api-docs
+```
+
+Jika ingin menjalankan versi produksi:
+
+```bash
+npm run build
+npm start
+```
+
+## Documentation
+
+- Express.js: https://expressjs.com/
+- TypeScript: https://www.typescriptlang.org/
+- MongoDB: https://www.mongodb.com/
+- Mongoose: https://mongoosejs.com/
+- JWT: https://jwt.io/
+- Swagger UI Express: https://www.npmjs.com/package/swagger-ui-express
+- Tesseract.js: https://tesseract.projectnaptha.com/
+- dotenv: https://www.npmjs.com/package/dotenv
+
+## Commit Format Standards
+
+Gunakan format commit message yang jelas agar riwayat perubahan mudah dibaca. Contoh standar yang direkomendasikan:
+
+- `feat(scope): tambah fitur baru`
+- `fix(scope): perbaiki bug`
+- `docs(scope): perbarui dokumentasi`
+- `chore(scope): tugas rutin atau konfigurasi`
+- `refactor(scope): perbaikan kode tanpa menambah fitur`
+
+Contoh commit message:
+
+- `feat(auth): tambahkan endpoint register dan login`
+- `fix(transactions): perbaiki validasi nominal transaksi`
+- `docs(readme): perbarui panduan setup lokal`
+- `chore(deps): update dependency npm`
 
 Request body:
 
