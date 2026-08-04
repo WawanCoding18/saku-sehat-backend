@@ -56,7 +56,7 @@ router.put("/catatan-keuangan/budgeting/:id", authMiddleware, updateBudgeting);
 router.delete("/catatan-keuangan/budgeting/:id", authMiddleware, deleteBudgeting);
 
 //router before you borrow
-router.post("/before-you-borrow", authMiddleware, postBeforeYouBorrow)
+router.post("/before-you-borrow", authMiddleware, postBeforeYouBorrow);
 
 //router cariAman
 router.post("/cariAman", authMiddleware, postCariAman);

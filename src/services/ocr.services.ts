@@ -13,6 +13,9 @@ export interface PaddleOCRResponse {
   processing_time_ms?: number;
 }
 
+const PADDLE_OCR_URL =
+  process.env.MODAL_OCR_URL ||
+  "https://wawancoding18--paddleocr-fastapi-service-fastapi-app.modal.run/ocr";
 
 export const scanTextPaddle = async (
   imageBuffer: Buffer,
@@ -39,7 +42,7 @@ export const scanTextPaddle = async (
     });
 
     const response = await axios.post<PaddleOCRResponse>(
-      "http://127.0.0.1:8000/ocr",
+      PADDLE_OCR_URL,
       formData,
       {
         headers: {
