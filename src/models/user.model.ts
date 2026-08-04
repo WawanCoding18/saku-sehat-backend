@@ -60,10 +60,6 @@ const UserSchema = new mongoose.Schema<User>(
   }
 );
 
-<<<<<<< HEAD
-// Pre-save hook — hanya encrypt password
-=======
->>>>>>> transaksi_manual
 UserSchema.pre("save", function (next) {
   const user = this;
 
