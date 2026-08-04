@@ -2,49 +2,48 @@ import mongoose from "mongoose";
 import { DATABASE_URL } from "./env";
 
 
-// Cache koneksi di global variable
-// Karena di Vercel, module bisa di-reload tapi global tetap ada
 declare global {
   var mongooseCache: {
     conn: typeof mongoose | null;
     promise: Promise<typeof mongoose> | null;
-  };
+  } | undefined;
 }
 
+let cached = global.mongooseCache;
 
-const cached = global.mongooseCache ?? { conn: null, promise: null };
-global.mongooseCache = cached;
-
+if (!cached) {
+  cached = global.mongooseCache = { conn: null, promise: null };
+}
 
 const connect = async () => {
-  // Kalau sudah ada koneksi aktif, langsung pakai — jangan buat baru
-  if (cached.conn) {
+  if (!DATABASE_URL) {
+    throw new Error(
+      "❌ DATABASE_URL belum di-set di Environment Variables (Vercel/.env)!"
+    );
+  }
+
+  if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
 
-
-  // Kalau belum ada promise koneksi, buat baru
   if (!cached.promise) {
-    cached.promise = mongoose
-      .connect(DATABASE_URL, {
-        dbName: "db-saku-sehat", // beda dari production biar aman
-        bufferCommands: false,
-      })
-      .then((mongooseInstance) => mongooseInstance);
-  }
+    const opts = {
+      dbName: "db-saku-sehat",
+      bufferCommands: true, 
+      serverSelectionTimeoutMS: 10000, // Timeout 10 detik
+    };
 
+    cached.promise = mongoose.connect(DATABASE_URL, opts).then((m) => m);
+  }
 
   try {
     cached.conn = await cached.promise;
   } catch (error) {
-    // Reset promise kalau gagal, biar bisa retry
     cached.promise = null;
     throw new Error(`Failed to connect to database: ${error}`);
   }
 
-
   return cached.conn;
 };
-
 
 export default connect;
