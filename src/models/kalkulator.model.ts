@@ -11,8 +11,8 @@ export interface ISimulasiPinjaman {
   totalPembayaran: number;
   totalBayarPerBulan: number;
   bungaEfektifTahunan: number;
-//   levelRisiko: "Rendah" | "Sedang" | "Tinggi";
-//   analisisAI: string;
+  levelRisiko: "Rendah" | "Sedang" | "Tinggi";
+  analisisAI: string;
 }
 
 const SimulasiPinjamanSchema = new Schema<ISimulasiPinjaman>(
@@ -65,15 +65,14 @@ const SimulasiPinjamanSchema = new Schema<ISimulasiPinjaman>(
       type: Number,
       required: true,
     },
-    // ===== HASIL ANALISIS AI =====
-    // levelRisiko: {
-    //   type: String,
-    //   enum: ["Rendah", "Sedang", "Tinggi"],
-    //   required: true,
-    // },
-    // analisisAI: {
-    //   type: String,
-    // },
+    levelRisiko: {
+      type: String,
+      enum: ["Rendah", "Sedang", "Tinggi"],
+      required: true,
+    },
+    analisisAI: {
+      type: String,
+    },
   },
   {
     timestamps: true, 
