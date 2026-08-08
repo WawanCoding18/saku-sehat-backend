@@ -6,11 +6,11 @@ import { upload } from "../middlewares/upload.Middleware"
 import { handleOcrUpload } from "../controllers/chat.controller";
 import { getProfile, postProfile, updateProfile } from "../controllers/profile.controller";
 import { postPinjaman, getAllPinjaman, putPinjaman, editPinjaman, deletePinjaman } from "../controllers/pinjaman.controller";
-import { postKalkulatorBunga, getAllKalkulatorBunga } from "../controllers/kalkulator.controller"
+import { postKalkulatorBunga, getKalkulatorBunga } from "../controllers/kalkulator.controller"
 import { postBudgeting, getAllBudgeting, updateBudgeting, deleteBudgeting } from "../controllers/budgeting.controller";
-import { postBeforeYouBorrow } from "../controllers/beforeYouBorrow.controller";
-import { postCariAman } from "../controllers/cariAman.controller";
-import { postFinancialHealth } from "../controllers/financialHealth.controller"
+import { getBeforeYouBorrow, postBeforeYouBorrow } from "../controllers/beforeYouBorrow.controller";
+import { getCariAman, postCariAman } from "../controllers/cariAman.controller";
+import { getFinancialHealth, postFinancialHealth } from "../controllers/financialHealth.controller"
 import { getDashboard } from "../controllers/dashboard.controller";
 
 
@@ -20,6 +20,7 @@ const router = express.Router();
 router.post("/auth/register", authController.register);
 router.post("/auth/login", authController.login);
 router.get("/auth/me", authMiddleware ,authController.me);
+router.post("/auth/logout", authMiddleware, authController.logout);
 router.post("/auth/verify-otp", authController.verifyOTP);
 router.post("/auth/resend-otp", authController.resendOTP);
 
@@ -47,7 +48,7 @@ router.delete("/catatan-keuangan/pinjaman/:id", authMiddleware, deletePinjaman);
 
 //router kalkulator bunga
 router.post('/kalkulator-bunga', authMiddleware, postKalkulatorBunga);
-router.get("/kalkulator-bunga/output", authMiddleware, getAllKalkulatorBunga)
+router.get("/kalkulator-bunga/output", authMiddleware, getKalkulatorBunga)
 
 //router budgeting
 router.post("/catatan-keuangan/budgeting/tambah-budget", authMiddleware, postBudgeting);
@@ -57,12 +58,17 @@ router.delete("/catatan-keuangan/budgeting/:id", authMiddleware, deleteBudgeting
 
 //router before you borrow
 router.post("/before-you-borrow", authMiddleware, postBeforeYouBorrow);
+router.get("/before-you-borrow/output", authMiddleware, getBeforeYouBorrow);
 
 //router cariAman
 router.post("/cariAman", authMiddleware, postCariAman);
+router.get("/cariAman/output", authMiddleware, getCariAman);
 
 //router financialhealth
-router.post("/dashboard/financial-health", authMiddleware, postFinancialHealth)
+router.post("/financial-health/output", authMiddleware, postFinancialHealth)
+router.get("/dashboard/financial-health", authMiddleware, getFinancialHealth)
+
+//router dashboard
 router.get("/dashboard", authMiddleware, getDashboard)
 
 export default router;

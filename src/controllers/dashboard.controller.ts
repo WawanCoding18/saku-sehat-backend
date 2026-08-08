@@ -4,10 +4,12 @@ import { hitungDataTransaksi } from "./transaksi.controller";
 import { hitungDataPinjaman } from "./pinjaman.controller";
 import { hitungDanSimpanFinancialHealth } from "./financialHealth.controller";
 import { cekBudgetWarning } from "./budgeting.controller";
+import UserModel  from "../models/user.model";
 
 export const getDashboard = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
+    const username = await UserModel.findById(userId).select("username").lean().exec().then(user => user?.username);
     if (!userId) {
       return res
         .status(401)
@@ -26,6 +28,7 @@ export const getDashboard = async (req: IReqUser, res: Response) => {
       message: "Dashboard data berhasil diambil",
       data: {
         notifikasi: budgetWarnings,
+        nama: username,
         summary: {
           saldo: transaksiData.summary.saldo,
           totalPemasukan: transaksiData.summary.totalPemasukan,

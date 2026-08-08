@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import * as Yup from "yup";
 import UserModel from "../models/user.model";
+import BlacklistTokenModel from "../models/blacklistToken.model";
 import { encrypt } from "../utils/Encryption";
 import { generateToken } from "../utils/jwt";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import connect from "../utils/database";
 import { sendOTPEmail, generateOTP } from "../utils/mail/mail";
 
-//Types 
+//Types
+//Types
 type TyRegister = {
   fullName: string;
   username: string;
@@ -21,7 +24,8 @@ type TyLogin = {
   password: string;
 };
 
-//Yup Validation Schema 
+//Yup Validation Schema
+//Yup Validation Schema
 const registerSchema = Yup.object({
   fullName: Yup.string().required(),
   username: Yup.string().required(),
@@ -34,7 +38,7 @@ const registerSchema = Yup.object({
       (value) => {
         if (!value) return false;
         return /^(?=.*[A-Z])/.test(value);
-      }
+      },
     )
     .test(
       "at-least-one-number",
@@ -42,7 +46,7 @@ const registerSchema = Yup.object({
       (value) => {
         if (!value) return false;
         return /^(?=.*\d)/.test(value);
-      }
+      },
     )
     .required(),
   confirmPassword: Yup.string()
@@ -108,7 +112,8 @@ export default {
           await sendOTPEmail(email, fullName, otpCode);
 
           return res.status(200).json({
-            message: "Registration successful. Please check your email for the new OTP code.",
+            message:
+              "Registration successful. Please check your email for the new OTP code.",
             data: { email },
           });
         }
@@ -139,7 +144,8 @@ export default {
       await sendOTPEmail(email, fullName, otpCode);
 
       res.status(200).json({
-        message: "Registration successful. Please check your email for OTP code.",
+        message:
+          "Registration successful. Please check your email for OTP code.",
         data: { email },
       });
     } catch (error) {
@@ -213,15 +219,29 @@ export default {
       }
 
       // Semua valid → aktifkan akun dan hapus OTP dari database
-      await UserModel.findByIdAndUpdate(user._id, {
-        isActive: true,
-        otpCode: null,
-        otpExpiresAt: null,
+      const updatedUser = await UserModel.findByIdAndUpdate(
+        user._id,
+        {
+          isActive: true,
+          otpCode: null,
+          otpExpiresAt: null,
+        },
+        { new: true }, // <-- WAJIB: biar hasil update yang ke-return, bukan data lama sebelum update
+      );
+
+      // Generate token JWT juga di sini, sama seperti di login.
+      // Ini yang bikin FE bisa langsung lanjut ke profile-onboarding
+      // tanpa harus manual login lagi setelah OTP diverifikasi.
+      const token = generateToken({
+        id: updatedUser!._id,
+        role: updatedUser!.role,
+        otpCode: updatedUser!.otpCode,
+        otpExpiresAt: updatedUser!.otpExpiresAt,
       });
 
       res.status(200).json({
-        message: "Account activated successfully! You can now login.",
-        data: null,
+        message: "Account activated successfully!",
+        data: token,
       });
     } catch (error) {
       const err = error as Error;
@@ -363,6 +383,52 @@ export default {
       const err = error as Error;
       res.status(400).json({
         message: "Login failed",
+        error: err.message,
+        data: null,
+      });
+    }
+  },
+
+  async logout(req: IReqUser, res: Response) {
+    /*
+      #swagger.tags = ['Auth']
+      #swagger.security = [{ bearerAuth: [] }]
+    */
+    try {
+      await connect();
+
+      const authorization = req.headers?.authorization;
+      const accessToken = authorization?.split(" ")[1];
+
+      if (!accessToken) {
+        return res.status(400).json({
+          message: "Token tidak ditemukan",
+          data: null,
+        });
+      }
+
+      const decoded = jwt.decode(accessToken) as { exp?: number } | null;
+      const expiresAt = decoded?.exp
+        ? new Date(decoded.exp * 1000)
+        : new Date(Date.now() + 60 * 60 * 1000); //1 jam kalau exp gak ada
+
+      await BlacklistTokenModel.create({ token: accessToken, expiresAt });
+
+      return res.status(200).json({
+        message: "Logout successful",
+        data: null,
+      });
+    } catch (error) {
+      if ((error as { code?: number })?.code === 11000) {
+        return res.status(200).json({
+          message: "Logout successful",
+          data: null,
+        });
+      }
+
+      const err = error as Error;
+      res.status(400).json({
+        message: "Logout failed",
         error: err.message,
         data: null,
       });

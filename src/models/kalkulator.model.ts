@@ -65,7 +65,6 @@ const SimulasiPinjamanSchema = new Schema<ISimulasiPinjaman>(
       type: Number,
       required: true,
     },
-    // ===== HASIL ANALISIS AI =====
     levelRisiko: {
       type: String,
       enum: ["Rendah", "Sedang", "Tinggi"],
