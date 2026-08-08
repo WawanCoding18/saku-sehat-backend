@@ -120,7 +120,7 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
   }
 };
 
-export const getAllKalkulatorBunga = async (req: IReqUser, res: Response) => {
+export const getKalkulatorBunga = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -129,15 +129,22 @@ export const getAllKalkulatorBunga = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    const dataList = await SimulasiPinjamanModel.find({ user: userId })
+    const latestData = await SimulasiPinjamanModel.findOne({ user: userId })
       .select(
         "jumlahPinjaman bungaPerBulan tenorCicilan dendaPerHari totalBunga totalPembayaran totalBayarPerBulan bungaEfektifTahunan levelRisiko analisisAI createdAt"
       )
       .sort({ createdAt: -1 });
 
+    if (!latestData) {
+      return res.status(200).json({
+        message: "Belum ada data simulasi",
+        data: null,
+      });
+    }
+
     return res.status(200).json({
-      message: "Berhasil mengambil data simulasi",
-      data: dataList,
+      message: "Berhasil mengambil data simulasi terbaru",
+      data: latestData,
     });
   } catch (error) {
     return res

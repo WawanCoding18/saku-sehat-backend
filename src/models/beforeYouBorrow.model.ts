@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-export interface IBeforeYouBorrow {
+export interface IBeforeYouBorrow extends Document {
   user: mongoose.Types.ObjectId;
   Nama_Platform: string;
   Tujuan_Meminjam: string;
@@ -8,14 +8,22 @@ export interface IBeforeYouBorrow {
   Pemasukan_PerBulan: number;
   Pengeluaran_PerBulan: number;
   Nominal_Pinjaman_Saat_Ini: number;
-//   hasilAsesmen?: string;
-//   levelKelayakan?: "Layak" | "Perlu Pertimbangan" | "Tidak Disarankan";
+  levelKelayakan?: "Layak" | "Perlu Pertimbangan" | "Tidak Disarankan";
+  score?: number;
+  riskLevel?: "Risiko Rendah" | "Risiko Sedang" | "Risiko Tinggi";
+  hasilAsesmen?: {
+    reasoning?: string;
+    recommendation?: string;
+    alternativeAction?: string;
+  };
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const BeforeYouBorrowSchema = new mongoose.Schema<IBeforeYouBorrow>(
+const BeforeYouBorrowSchema = new Schema<IBeforeYouBorrow>(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -25,16 +33,6 @@ const BeforeYouBorrowSchema = new mongoose.Schema<IBeforeYouBorrow>(
     },
     Tujuan_Meminjam: {
       type: String,
-      enum: [
-        "Kebutuhan Mendesak",
-        "Modal Usaha",
-        "Pendidikan",
-        "Kesehatan",
-        "Konsumtif",
-        "Renovasi/Properti",
-        "Kendaraan",
-        "Lainnya",
-      ],
       required: true,
     },
     Jumlah_Pinjaman: {
@@ -57,15 +55,34 @@ const BeforeYouBorrowSchema = new mongoose.Schema<IBeforeYouBorrow>(
       required: true,
       min: 0,
     },
-    // hasilAsesmen: {
-    //   type: String,
-    //   required: false,
-    // },
-    // levelKelayakan: {
-    //   type: String,
-    //   enum: ["Layak", "Perlu Pertimbangan", "Tidak Disarankan"],
-    //   required: false,
-    // },
+    levelKelayakan: {
+      type: String,
+      enum: ["Layak", "Perlu Pertimbangan", "Tidak Disarankan"],
+      required: false,
+    },
+    score: {
+      type: Number,
+      required: false,
+    },
+    riskLevel: {
+      type: String,
+      enum: ["Risiko Rendah", "Risiko Sedang", "Risiko Tinggi"],
+      required: false,
+    },
+    hasilAsesmen: {
+      reasoning: {
+        type: String,
+        required: false,
+      },
+      recommendation: {
+        type: String,
+        required: false,
+      },
+      alternativeAction: {
+        type: String,
+        required: false,
+      },
+    },
   },
   { timestamps: true }
 );
@@ -74,4 +91,5 @@ const BeforeYouBorrowModel = mongoose.model<IBeforeYouBorrow>(
   "BeforeYouBorrow",
   BeforeYouBorrowSchema
 );
+
 export default BeforeYouBorrowModel;
