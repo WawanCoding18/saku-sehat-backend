@@ -72,7 +72,6 @@ export const hitungDataTransaksi = async (userId: string, type?: string) => {
   };
 };
 
-//Hanya milik user yang sedang login
 export const getAllTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;

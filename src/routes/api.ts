@@ -38,7 +38,7 @@ router.delete("/catatan-keuangan/:id", authMiddleware, deleteTransaksi);
 
 //scan OCR
 router.post('/catatan-keuangan/scan', upload.single('image'), authMiddleware, handleOcrUpload);
-
+router.get('/catatan-keuangan', authMiddleware, handleOcrUpload);
 //router pinjaman
 router.post("/catatan-keuangan/pinjaman/tambah-pinjaman", authMiddleware, postPinjaman);
 router.get("/catatan-keuangan/pinjaman", authMiddleware, getAllPinjaman);

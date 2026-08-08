@@ -54,8 +54,8 @@ const cariAmanSchema = new Schema<cariAman>(
     aiRecommendation: { type: String, required: true },
   },
   {
-    timestamps: true, // Auto generate createdAt & updatedAt
-    collection: "cari_amans" // 👈 PAKSANYA NAMA COLLECTION DI SINI
+    timestamps: true,
+    collection: "cari_amans" 
   }
 );
 
