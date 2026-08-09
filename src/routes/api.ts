@@ -47,6 +47,12 @@ router.put("/catatan-keuangan/pinjaman/:id/bayar", authMiddleware, putPinjaman);
 router.put("/catatan-keuangan/pinjaman/:id", authMiddleware, editPinjaman);
 router.delete("/catatan-keuangan/pinjaman/:id", authMiddleware, deletePinjaman);
 
+//router target tabung
+router.post("/catatan-keuangan/target-tabung/tambah-target", authMiddleware, postTargetTabung)
+router.get("/catatan-keuangan/target-tabung", authMiddleware, getAllTargetTabung)
+router.put("/catatan-keuangan/target-tabung/:id", authMiddleware, editTargetTabung)
+router.delete("/catatan-keuangan/target-tabung/:id", authMiddleware, deleteTargetTabung)
+
 //router kalkulator bunga
 router.post('/kalkulator-bunga', authMiddleware, postKalkulatorBunga);
 router.get("/kalkulator-bunga/output", authMiddleware, getKalkulatorBunga); 
@@ -68,12 +74,6 @@ router.get("/cariAman/output", authMiddleware, getCariAman);
 //router financialhealth
 router.post("/financial-health/output", authMiddleware, postFinancialHealth)
 router.get("/dashboard/financial-health", authMiddleware, getFinancialHealth)
-
-//router target tabung
-router.post("/target-tabung/tambah-target", authMiddleware, postTargetTabung)
-router.get("/target-tabung", authMiddleware, getAllTargetTabung)
-router.put("/target-tabung/:id", authMiddleware, editTargetTabung)
-router.delete("/target-tabung/:id", authMiddleware, deleteTargetTabung)
 
 //router dashboard
 router.get("/dashboard", authMiddleware, getDashboard)
