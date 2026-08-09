@@ -13,7 +13,7 @@ export interface IFinancialHealth {
   user: mongoose.Types.ObjectId;
   skorTotal: number;          // 87
   grade: "A" | "B" | "C" | "D" | "E";
-  // targetNabung: ISubScore;
+  targetNabung: ISubScore;
   disiplinAnggaran: ISubScore;
   pengelolaanPinjaman: ISubScore;
 }
@@ -48,7 +48,7 @@ const FinancialHealthSchema = new mongoose.Schema<IFinancialHealth>(
       enum: ["A", "B", "C", "D", "E"],
       required: true,
     },
-    // targetNabung: { type: SubScoreSchema, required: true },
+    targetNabung: { type: SubScoreSchema, required: true },
     disiplinAnggaran: { type: SubScoreSchema, required: true },
     pengelolaanPinjaman: { type: SubScoreSchema, required: true },
   },
