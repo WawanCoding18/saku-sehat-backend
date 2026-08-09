@@ -33,7 +33,7 @@ router.put("/profile", authMiddleware, updateProfile)
 //router transaksi
 router.post("/catatan-keuangan/transaksi", authMiddleware, createTransaksi);
 router.get("/catatan-keuangan", authMiddleware, getAllTransaksi);
-router.get("/catatan-keunagan/:id", authMiddleware, getTransaksiById);
+router.get("/catatan-keuangan/:id", authMiddleware, getTransaksiById);
 router.put("/catatan-keuangan/:id", authMiddleware, updateTransaksi);
 router.delete("/catatan-keuangan/:id", authMiddleware, deleteTransaksi);
 
