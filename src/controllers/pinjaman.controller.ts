@@ -316,7 +316,7 @@
 //   }
 // };
 
-import { Request, Response } from "express";
+ import { Request, Response } from "express";
 import { Types } from "mongoose";
 import PinjamanModel from "../models/pinjaman.model";
 import TransaksiModel from "../models/transaksi.model";
@@ -397,63 +397,82 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
 
 //Hitung Data Pinjaman
 export const hitungDataPinjaman = async (userId: string | Types.ObjectId) => {
-  const listPinjaman = await PinjamanModel.find({ user: userId }).sort({
-    createdAt: -1,
-  });
+  try {
+    const listPinjaman =
+      (await PinjamanModel.find({ user: userId }).sort({
+        createdAt: -1,
+      })) || [];
 
-  const formattedData = listPinjaman.map((item) => {
-    const total = item.totalPinjaman || 0;
-    const sisa = item.totalYangHarusDibayar || 0;
-    const progress =
-      total > 0
-        ? ((total - sisa) / total) * 100
-        : 0;
+    const formattedData = listPinjaman.map((item) => {
+      const total = Number(item.totalPinjaman) || 0;
+      const sisa = Number(item.totalYangHarusDibayar) || 0;
+
+      let progressCalc = 0;
+      if (total > 0) {
+        progressCalc = ((total - sisa) / total) * 100;
+      }
+
+      const safeProgress = isNaN(progressCalc)
+        ? 0
+        : Math.max(0, Math.min(100, progressCalc));
+
+      return {
+        _id: item._id,
+        namaPlatform: item.namaPlatform || "-",
+        jenisPinjaman: item.jenisPinjaman || "-",
+        totalPinjaman: total,
+        tenorCicilan: Number(item.tenorCicilan) || 0,
+        cicilanBulanan: Number(item.cicilanBulanan) || 0,
+        totalYangHarusDibayar: sisa,
+        jatuhTempo: item.jatuhTempo || new Date(),
+        persenBunga: Number(item.persenBunga) || 0,
+        statusPinjaman: item.statusPinjaman || "Aktif",
+        progress: Number(safeProgress.toFixed(1)),
+      };
+    });
+
+    // Total Sisa Tagihan (Belum Dibayar)
+    const belumDibayar = listPinjaman.reduce((acc, item) => {
+      return acc + (Number(item.totalYangHarusDibayar) || 0);
+    }, 0);
+
+    // Total yang sudah terbayar
+    const sudahDibayar = listPinjaman.reduce((acc, item) => {
+      const terbayarPerItem =
+        (Number(item.totalPinjaman) || 0) -
+        (Number(item.totalYangHarusDibayar) || 0);
+      return acc + Math.max(0, terbayarPerItem);
+    }, 0);
+
+    //Kewajiban perbulan untuk pinjaman yang belum lunas
+    const kewajibanPerbulan = listPinjaman.reduce((acc, item) => {
+      if (
+        (Number(item.totalYangHarusDibayar) || 0) > 0 &&
+        item.statusPinjaman !== "Lunas"
+      ) {
+        return acc + (Number(item.cicilanBulanan) || 0);
+      }
+      return acc;
+    }, 0);
 
     return {
-      _id: item._id,
-      namaPlatform: item.namaPlatform || "-",
-      jenisPinjaman: item.jenisPinjaman || "-",
-      totalPinjaman: total,
-      tenorCicilan: item.tenorCicilan || 0,
-      cicilanBulanan: item.cicilanBulanan || 0,
-      totalYangHarusDibayar: sisa,
-      jatuhTempo: item.jatuhTempo,
-      persenBunga: item.persenBunga || 0,
-      statusPinjaman: item.statusPinjaman || "Aktif",
-      progress: Number(Math.max(0, Math.min(100, progress)).toFixed(1)),
+      summary: {
+        belumDibayar,
+        sudahDibayar,
+        kewajibanPerbulan,
+      },
+      totalPinjaman: formattedData.length,
+      sisaSlot: Math.max(0, 3 - formattedData.length),
+      data: formattedData,
     };
-  });
-
-  // Total Sisa Tagihan (Belum Dibayar)
-  const belumDibayar = listPinjaman.reduce((acc, item) => {
-    return acc + (item.totalYangHarusDibayar ?? 0);
-  }, 0);
-
-  // Total yang sudah terbayar
-  const sudahDibayar = listPinjaman.reduce((acc, item) => {
-    const terbayarPerItem =
-      (item.totalPinjaman ?? 0) - (item.totalYangHarusDibayar ?? 0);
-    return acc + Math.max(0, terbayarPerItem);
-  }, 0);
-
-  //Kewajiban perbulan untuk pinjaman yang belum lunas
-  const kewajibanPerbulan = listPinjaman.reduce((acc, item) => {
-    if ((item.totalYangHarusDibayar ?? 0) > 0 && item.statusPinjaman !== "Lunas") {
-      return acc + (item.cicilanBulanan ?? 0);
-    }
-    return acc;
-  }, 0);
-
-  return {
-    summary: {
-      belumDibayar,
-      sudahDibayar,
-      kewajibanPerbulan,
-    },
-    totalPinjaman: formattedData.length,
-    sisaSlot: Math.max(0, 3 - formattedData.length),
-    data: formattedData,
-  };
+  } catch (err) {
+    return {
+      summary: { belumDibayar: 0, sudahDibayar: 0, kewajibanPerbulan: 0 },
+      totalPinjaman: 0,
+      sisaSlot: 3,
+      data: [],
+    };
+  }
 };
 
 //Ambil Semua Data
@@ -470,7 +489,10 @@ export const getAllPinjaman = async (req: IReqUser, res: Response) => {
 
     return res.status(200).json({
       message: "Berhasil mengambil data pinjaman",
-      ...result,
+      summary: result.summary,
+      totalPinjaman: result.totalPinjaman,
+      sisaSlot: result.sisaSlot,
+      data: result.data,
     });
   } catch (error) {
     return res
@@ -510,7 +532,9 @@ export const putPinjaman = async (req: IReqUser, res: Response) => {
     const sisaTagihanBaru = Math.max(0, pinjaman.totalYangHarusDibayar - bayar);
 
     //Update jatuh tempo ke bulan berikutnya jika sisa tagihan masih ada
-    const tglSekarang = pinjaman.jatuhTempo ? new Date(pinjaman.jatuhTempo) : new Date();
+    const tglSekarang = pinjaman.jatuhTempo
+      ? new Date(pinjaman.jatuhTempo)
+      : new Date();
     const jatuhTempoBaru = new Date(
       tglSekarang.setMonth(tglSekarang.getMonth() + 1),
     );
@@ -632,4 +656,5 @@ export const deletePinjaman = async (req: IReqUser, res: Response) => {
       .status(500)
       .json({ message: "Gagal menghapus data pinjaman", error: String(error) });
   }
-};
+};   
+      
