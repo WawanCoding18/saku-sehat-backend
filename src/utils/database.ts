@@ -30,7 +30,7 @@ const connect = async () => {
     const opts = {
       dbName: "db-saku-sehat",
       bufferCommands: true, 
-      serverSelectionTimeoutMS: 10000, // Timeout 10 detik
+      serverSelectionTimeoutMS: 10000, //Timeout 10 detik
     };
 
     cached.promise = mongoose.connect(DATABASE_URL, opts).then((m) => m);

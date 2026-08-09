@@ -3,7 +3,6 @@ import BeforeYouBorrowModel from "../models/beforeYouBorrow.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import { askAIStream } from "../services/ai.BeforeYouBorrow.services";
 
-// Interface khusus menampung balasan JSON dari AI Before You Borrow
 interface IAIResult {
   levelKelayakan?: "Layak" | "Perlu Pertimbangan" | "Tidak Disarankan";
   score?: number;
@@ -23,7 +22,7 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
       .json({ message: "Unauthorized: User tidak teridentifikasi" });
   }
 
-  // 1. Ambil input dari body
+  //Ambil input dari body
   const {
     Nama_Platform,
     Tujuan_Meminjam,
@@ -38,7 +37,6 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
   const pengeluaran = Number(Pengeluaran_PerBulan);
   const pinjamanSaatIni = Number(Nominal_Pinjaman_Saat_Ini) || 0;
 
-  // Validasi input dasar (SEBELUM SSE Header dipasang)
   if (!Nama_Platform) {
     return res.status(400).json({ message: "Nama Platform wajib diisi" });
   }
@@ -55,14 +53,13 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
     return res.status(400).json({ message: "Pengeluaran per Bulan tidak valid" });
   }
 
-  // 🟢 2. PASANG HEADER SSE DI SINI (WAJIB SEBELUM askAIStream DIPANGGIL)
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  res.flushHeaders?.(); // Langsung kunci header ke client
+  res.flushHeaders?.();
 
   try {
-    // 🤖 3. Panggil AI Stream
+    //Panggil AI Stream
     const aiResponse = (await askAIStream(
       JSON.stringify({
         Nama_Platform,
@@ -75,7 +72,7 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
       res
     )) as IAIResult;
 
-    // Fallback data jika AI mengalami masalah parsing JSON
+    //Fallback data jika AI mengalami masalah parsing JSON
     const levelKelayakan = aiResponse?.levelKelayakan || "Perlu Pertimbangan";
     const score = aiResponse?.score || 50;
     const riskLevel = aiResponse?.riskLevel || "Risiko Sedang";
@@ -85,7 +82,7 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
       alternativeAction: "Kurangi nominal pinjaman atau gunakan dana simpanan terlebih dahulu."
     };
 
-    // 💾 4. SIMPAN KE DATABASE
+    //Simpan ke Database
     const newBeforeYouBorrow = await BeforeYouBorrowModel.create({
       user: userId,
       Nama_Platform,
@@ -100,7 +97,7 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
       hasilAsesmen,
     });
 
-    // 🎯 5. Kirim event done beserta data baru
+    //Kirim event done beserta data baru
     res.write(
       `data: ${JSON.stringify({
         type: "done",

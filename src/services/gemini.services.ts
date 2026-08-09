@@ -3,8 +3,6 @@ import { aiConfig } from "../utils/config/ai.config";
 import { GoogleGenAI, Type } from "@google/genai";
 import { getFullSystemInstruction } from "../utils/prompts";
 
-
-// Client khusus Teks (menggunakan API Key dari config)
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
 
 export const streamGemini = async (
@@ -33,7 +31,6 @@ export const streamGemini = async (
     config: {
       systemInstruction: dynamicSystemInstruction,
       responseMimeType: "application/json",
-      //Mengunci struktur output dengan Schema bawaan SDK Gemini
       responseSchema: {
         type: Type.OBJECT,
         properties: {

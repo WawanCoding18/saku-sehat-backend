@@ -2,23 +2,23 @@
 
 ## Deskripsi
 
-Saku Sehat Backend adalah API backend untuk aplikasi finansial berbasis web yang membantu pengguna mengelola keuangan pribadi secara lebih sadar. Project ini dirancang untuk mendukung fitur seperti pencatatan transaksi, pemantauan anggaran, evaluasi pinjaman, analisis kondisi finansial, serta pemberian rekomendasi berbasis AI.
+Saku Sehat Backend adalah backend API untuk aplikasi finansial yang membantu pengguna mengelola keuangan pribadi secara lebih terarah dan aman. Project ini mendukung alur autentikasi pengguna, pencatatan transaksi, pengelolaan pinjaman, target tabungan, budgeting, analisis kondisi finansial, serta rekomendasi berbasis AI.
 
-Backend ini dibangun menggunakan Node.js, TypeScript, dan Express.js dengan MongoDB sebagai database. Aplikasi juga dilengkapi dengan dokumentasi API Swagger serta integrasi OCR dan AI untuk mempercepat proses analisis data transaksi.
+Backend ini dibangun dengan Node.js, TypeScript, dan Express.js, lalu terhubung ke MongoDB sebagai database utama. Project ini juga menyediakan dokumentasi API otomatis melalui Swagger serta integrasi OCR dan AI untuk mempercepat analisis transaksi.
 
 ## Key Features
 
-- Autentikasi pengguna dengan JWT, termasuk register, login, logout, dan OTP verification
-- Pengelolaan profil pengguna melalui onboarding dan update profile
-- CRUD transaksi keuangan untuk mencatat pemasukan dan pengeluaran
-- OCR untuk membaca data dari gambar struk transaksi
-- Fitur pinjaman dengan alur tambah, edit, bayar, dan hapus pinjaman
-- Kalkulator bunga cicilan untuk membantu pengguna menghitung simulasi pinjaman
-- Fitur budgeting untuk mengatur batas pengeluaran per kategori
-- Analisis Before You Borrow untuk menilai kelayakan pinjaman sebelum mengambil pinjaman
-- Fitur Cari Aman untuk membantu mendeteksi potensi risiko pinjaman atau penipuan
-- Dashboard financial health untuk melihat gambaran kondisi finansial pengguna
-- Dokumentasi API yang tersedia melalui Swagger UI di endpoint /api-docs
+- Autentikasi pengguna dengan JWT untuk register, login, logout, verifikasi OTP, dan resend OTP.
+- Pengelolaan profil pengguna melalui onboarding dan update data profil.
+- CRUD transaksi keuangan untuk mencatat pemasukan dan pengeluaran.
+- OCR berbasis upload gambar untuk membaca data dari struk transaksi.
+- Fitur pinjaman lengkap: tambah, edit, bayar, dan hapus pinjaman.
+- Kalkulator bunga cicilan untuk simulasi pinjaman.
+- Fitur budgeting untuk mengatur batas pengeluaran per kategori.
+- Analisis Before You Borrow untuk menilai kelayakan pinjaman sebelum mengambil keputusan.
+- Fitur Cari Aman untuk membantu mendeteksi potensi risiko atau penipuan.
+- Dashboard finansial health untuk melihat gambaran kondisi keuangan pengguna.
+- Dokumentasi API terintegrasi dengan Swagger UI.
 
 ## Preview
 
@@ -61,11 +61,11 @@ Response berhasil:
 
 Validasi:
 
-- fullName wajib diisi
-- username wajib diisi
-- email harus format email yang valid
-- password minimal 6 karakter dan harus mengandung huruf besar serta angka
-- confirmPassword harus sama dengan password
+- fullName wajib diisi.
+- username wajib diisi.
+- email harus menggunakan format email yang valid.
+- password minimal 6 karakter dan harus mengandung huruf besar serta angka.
+- confirmPassword harus sama dengan password.
 
 ### 2. Login User
 
@@ -136,9 +136,9 @@ Response berhasil:
 
 Validasi:
 
-- tipe harus bernilai pengeluaran atau pemasukan
-- nominal wajib berupa angka
-- tanggal bersifat opsional, jika tidak dikirim maka akan memakai tanggal saat ini
+- tipe harus bernilai pengeluaran atau pemasukan.
+- nominal wajib berupa angka.
+- tanggal bersifat opsional, jika tidak dikirim maka akan memakai tanggal saat ini.
 
 ### 4. OCR Upload
 
@@ -159,7 +159,7 @@ Form-data:
 
 - image: file gambar struk transaksi
 
-Response yang dikembalikan biasanya berisi hasil ekstraksi teks dan data transaksi yang dideteksi dari gambar.
+Response yang dikembalikan biasanya berisi hasil ekstraksi teks dan data transaksi yang terdeteksi dari gambar.
 
 ### 5. API Documentation
 
@@ -175,7 +175,7 @@ Struktur folder utama project ini adalah sebagai berikut:
 
 ```text
 src/
-  controllers/        # Logic handler untuk setiap endpoint API
+  controllers/        # Handler logic untuk setiap endpoint API
   middlewares/        # Middleware seperti autentikasi dan upload file
   models/             # Schema dan model MongoDB
   routes/             # Routing API utama
@@ -188,13 +188,13 @@ src/
 
 Penjelasan folder penting:
 
-- src/index.ts: entry point server Express dan konfigurasi CORS
-- src/routes/api.ts: registrasi semua route API utama
-- src/controllers: implementasi logic bisnis untuk auth, profile, transaksi, pinjaman, budgeting, dan analisis finansial
-- src/models: definisi model data untuk user, transaksi, profil, pinjaman, dan fitur lainnya
-- src/services: integrasi AI, OCR, dan layanan pihak ketiga
-- src/utils: utilitas seperti koneksi database, env, JWT, email, dan enkripsi
-- src/docs: konfigurasi Swagger UI dan output dokumentasi API
+- src/index.ts: entry point server Express dan konfigurasi CORS.
+- src/routes/api.ts: registrasi semua route API utama.
+- src/controllers: implementasi logic bisnis untuk auth, profile, transaksi, pinjaman, budgeting, dan analisis finansial.
+- src/models: definisi model data untuk user, transaksi, profil, pinjaman, target tabungan, dan fitur lainnya.
+- src/services: integrasi AI, OCR, dan layanan pihak ketiga.
+- src/utils: utilitas seperti koneksi database, env, JWT, email, dan enkripsi.
+- src/docs: konfigurasi Swagger UI dan output dokumentasi API.
 
 ## Tech Stack
 
@@ -210,7 +210,7 @@ Teknologi yang digunakan pada project ini antara lain:
 - Tesseract.js untuk OCR
 - Gemini AI dan Groq untuk fitur analisis berbasis AI
 - Nodemailer untuk pengiriman email OTP
-- dotenv, cors, yup, zod untuk konfigurasi dan validasi
+- dotenv, cors, yup, dan zod untuk konfigurasi dan validasi
 
 ## Local Setup
 
@@ -255,12 +255,12 @@ MODAL_OCR_URL=https://your-ocr-service-url
 
 Keterangan variabel:
 
-- DATABASE_URL: URL koneksi MongoDB
-- SECRET: kunci rahasia untuk JWT
-- EMAIL_FROM dan EMAIL_APP_PASSWORD: kredensial SMTP untuk OTP email
-- CLIENT_HOST: URL frontend yang akan digunakan untuk redirect tertentu
-- GEMINI_API_KEY dan GROQ_API_KEY: API key untuk fitur AI
-- MODAL_OCR_URL: URL layanan OCR opsional yang digunakan oleh service OCR
+- DATABASE_URL: URL koneksi MongoDB.
+- SECRET: kunci rahasia untuk JWT.
+- EMAIL_FROM dan EMAIL_APP_PASSWORD: kredensial SMTP untuk OTP email.
+- CLIENT_HOST: URL frontend yang akan digunakan untuk redirect tertentu.
+- GEMINI_API_KEY dan GROQ_API_KEY: API key untuk fitur AI.
+- MODAL_OCR_URL: URL layanan OCR opsional yang digunakan oleh service OCR.
 
 4. Jalankan aplikasi dalam mode development
 

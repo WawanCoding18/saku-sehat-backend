@@ -10,7 +10,6 @@ import connect from "../utils/database";
 import { sendOTPEmail, generateOTP } from "../utils/mail/mail";
 
 //Types
-//Types
 type TyRegister = {
   fullName: string;
   username: string;
@@ -24,7 +23,6 @@ type TyLogin = {
   password: string;
 };
 
-//Yup Validation Schema
 //Yup Validation Schema
 const registerSchema = Yup.object({
   fullName: Yup.string().required(),
@@ -69,7 +67,7 @@ export default {
       }
     */
     try {
-      // 1. Hubungkan database di dalam try agar jika gagal bisa ditangkap catch
+      //Hubungkan database di dalam try agar jika gagal bisa ditangkap catch
       await connect();
 
       const body = req.body as unknown as TyRegister;
@@ -83,7 +81,7 @@ export default {
 
       const { fullName, username, email, password, confirmPassword } = body;
 
-      // Validasi input dengan Yup
+      //Validasi input dengan Yup
       await registerSchema.validate({
         fullName,
         username,
@@ -92,13 +90,13 @@ export default {
         confirmPassword,
       });
 
-      // Cek apakah email atau username sudah terdaftar
+      //Cek apakah email atau username sudah terdaftar
       const existingUser = await UserModel.findOne({
         $or: [{ email }, { username }],
       });
 
       if (existingUser) {
-        // Solusi Deadlock: Jika user sudah terdaftar tapi BELUM AKTIF, update OTP baru
+        //Solusi Deadlock: Jika user sudah terdaftar tapi BELUM AKTIF, update OTP baru
         if (!existingUser.isActive) {
           const otpCode = generateOTP();
           const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
@@ -125,11 +123,11 @@ export default {
         });
       }
 
-      // Generate OTP 6 digit dan waktu expired 5 menit
+      //Generate OTP 6 digit dan waktu expired 5 menit
       const otpCode = generateOTP();
       const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-      // Simpan user baru ke MongoDB
+      //Simpan user baru ke MongoDB
       await UserModel.create({
         fullName,
         username,
@@ -140,7 +138,7 @@ export default {
         isActive: false,
       });
 
-      // Kirim OTP ke email user via Gmail
+      //Kirim OTP ke email user via Gmail
       await sendOTPEmail(email, fullName, otpCode);
 
       res.status(200).json({
@@ -173,7 +171,7 @@ export default {
     try {
       await connect();
 
-      // Destructuring dipindahkan ke dalam try agar aman dari error undefined body
+      //Destructuring dipindahkan ke dalam try agar aman dari error undefined body
       const { email, otpCode } = req.body as { email: string; otpCode: string };
 
       if (!email || !otpCode) {
@@ -183,10 +181,10 @@ export default {
         });
       }
 
-      // Cari user berdasarkan email
+      //Cari user berdasarkan email
       const user = await UserModel.findOne({ email });
 
-      // User tidak ditemukan
+      //User tidak ditemukan
       if (!user) {
         return res.status(404).json({
           message: "User not found",
@@ -194,7 +192,7 @@ export default {
         });
       }
 
-      // Akun sudah aktif sebelumnya
+      //Akun sudah aktif sebelumnya
       if (user.isActive) {
         return res.status(400).json({
           message: "Account already activated",
@@ -202,7 +200,7 @@ export default {
         });
       }
 
-      // Cek apakah OTP sudah expired
+      //Cek apakah OTP sudah expired
       if (!user.otpExpiresAt || new Date() > user.otpExpiresAt) {
         return res.status(400).json({
           message: "OTP has expired. Please request a new one.",
@@ -210,7 +208,7 @@ export default {
         });
       }
 
-      // Cek apakah OTP cocok
+      //Cek apakah OTP cocok
       if (user.otpCode !== otpCode) {
         return res.status(400).json({
           message: "Invalid OTP code",
@@ -218,7 +216,7 @@ export default {
         });
       }
 
-      // Semua valid → aktifkan akun dan hapus OTP dari database
+      //Semua valid → aktifkan akun dan hapus OTP dari database
       const updatedUser = await UserModel.findByIdAndUpdate(
         user._id,
         {
@@ -273,7 +271,7 @@ export default {
         });
       }
 
-      // Cari user yang belum aktif
+      //Cari user yang belum aktif
       const user = await UserModel.findOne({ email, isActive: false });
 
       if (!user) {
@@ -283,17 +281,17 @@ export default {
         });
       }
 
-      // Generate OTP baru
+      //Generate OTP baru
       const otpCode = generateOTP();
       const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-      // Update OTP baru ke database
+      //Update OTP baru ke database
       await UserModel.findByIdAndUpdate(user._id, {
         otpCode,
         otpExpiresAt,
       });
 
-      // Kirim OTP baru ke email
+      //Kirim OTP baru ke email
       await sendOTPEmail(email, user.fullName, otpCode);
 
       res.status(200).json({
@@ -333,12 +331,12 @@ export default {
         });
       }
 
-      // Cari user berdasarkan username atau email
+      //Cari user berdasarkan username atau email
       const user = await UserModel.findOne({
         $or: [{ username: identifier }, { email: identifier }],
       });
 
-      // User tidak ditemukan
+      //User tidak ditemukan
       if (!user) {
         return res.status(403).json({
           message: "User not found",
@@ -346,7 +344,7 @@ export default {
         });
       }
 
-      // Akun belum diverifikasi OTP
+      //Akun belum diverifikasi OTP
       if (!user.isActive) {
         return res.status(403).json({
           message: "Account not activated. Please verify your OTP first.",
@@ -354,7 +352,7 @@ export default {
         });
       }
 
-      // Cek password cocok dengan yang di database
+      //Cek password cocok dengan yang di database
       const validPassword: boolean = encrypt(password) === user.password;
 
       if (!validPassword) {
@@ -364,7 +362,7 @@ export default {
         });
       }
 
-      // Generate JWT token berisi id dan role user
+      //Generate JWT token berisi id dan role user
       const token = generateToken({
         id: user._id,
         role: user.role,
@@ -443,7 +441,7 @@ export default {
       // Ambil data user dari token yang sudah diverifikasi middleware
       const user = req.user;
 
-      // Cari data lengkap user di database berdasarkan id dari token
+      //Cari data lengkap user di database berdasarkan id dari token
       const result = await UserModel.findById(user?.id);
 
       res.status(200).json({

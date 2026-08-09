@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import PinjamanModel from "../models/pinjaman.model";
-import TransaksiModel from "../models/transaksi.model"; // 👈 Ditambahkan untuk pencatatan transaksi otomatis
+import TransaksiModel from "../models/transaksi.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 
-// 📝 1. POST (Tambah Data Pinjaman Baru — maks 3)
+//Tambah Data Pinjaman Baru maks 3
 export const postPinjaman = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -77,7 +77,7 @@ export const postPinjaman = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 📊 2. Helper Hitung Data Pinjaman
+//Hitung Data Pinjaman
 export const hitungDataPinjaman = async (userId: string) => {
   const listPinjaman = await PinjamanModel.find({ user: userId }).sort({
     createdAt: -1,
@@ -118,7 +118,7 @@ export const hitungDataPinjaman = async (userId: string) => {
     return acc + Math.max(0, terbayarPerItem);
   }, 0);
 
-  // Kewajiban perbulan untuk pinjaman yang belum lunas
+  //Kewajiban perbulan untuk pinjaman yang belum lunas
   const kewajibanPerbulan = listPinjaman.reduce((acc, item) => {
     if (item.totalYangHarusDibayar > 0 && item.statusPinjaman !== "Lunas") {
       return acc + (item.cicilanBulanan ?? 0);
@@ -138,7 +138,7 @@ export const hitungDataPinjaman = async (userId: string) => {
   };
 };
 
-// 📜 3. Ambil Semua Data
+//Ambil Semua Data
 export const getAllPinjaman = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -161,7 +161,7 @@ export const getAllPinjaman = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 💳 4. Aksi Bayar Cicilan (PUT / Kurangi Tagihan + Otomatis Catat Transaksi Pengeluaran)
+//Aksi Bayar Cicilan Kurangi Tagihan + Otomatis Catat Transaksi Pengeluaran
 export const putPinjaman = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
@@ -185,18 +185,16 @@ export const putPinjaman = async (req: IReqUser, res: Response) => {
         .json({ message: "Pinjaman ini sudah lunas, tidak bisa dibayar lagi" });
     }
 
-    // Gunakan nominalBayar dari req.body, jika tidak ada pakai cicilanBulanan
-    const bayar = Number(nominalBayar) > 0 ? Number(nominalBayar) : pinjaman.cicilanBulanan;
+    //Gunakan nominalBayar dari req.body, jika tidak ada pakai cicilanBulanan
+    const bayar =
+      Number(nominalBayar) > 0 ? Number(nominalBayar) : pinjaman.cicilanBulanan;
 
-    const sisaTagihanBaru = Math.max(
-      0,
-      pinjaman.totalYangHarusDibayar - bayar
-    );
+    const sisaTagihanBaru = Math.max(0, pinjaman.totalYangHarusDibayar - bayar);
 
-    // Update jatuh tempo ke bulan berikutnya jika sisa tagihan masih ada
+    //Update jatuh tempo ke bulan berikutnya jika sisa tagihan masih ada
     const tglSekarang = new Date(pinjaman.jatuhTempo);
     const jatuhTempoBaru = new Date(
-      tglSekarang.setMonth(tglSekarang.getMonth() + 1)
+      tglSekarang.setMonth(tglSekarang.getMonth() + 1),
     );
 
     pinjaman.totalYangHarusDibayar = sisaTagihanBaru;
@@ -208,7 +206,6 @@ export const putPinjaman = async (req: IReqUser, res: Response) => {
 
     await pinjaman.save();
 
-    // 🪄 OTOMATIS CATAT KE TRANSAKSI PENGELUARAN
     await TransaksiModel.create({
       user: userId,
       Catatan_Transaksi: `Bayar Cicilan: ${pinjaman.namaPlatform}`,
@@ -220,17 +217,18 @@ export const putPinjaman = async (req: IReqUser, res: Response) => {
     });
 
     return res.status(200).json({
-      message: `Berhasil membayar cicilan ${pinjaman.namaPlatform} sebesar Rp${bayar.toLocaleString('id-ID')}`,
+      message: `Berhasil membayar cicilan ${pinjaman.namaPlatform} sebesar Rp${bayar.toLocaleString("id-ID")}`,
       data: pinjaman,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Gagal memproses pembayaran cicilan", error: String(error) });
+    return res.status(500).json({
+      message: "Gagal memproses pembayaran cicilan",
+      error: String(error),
+    });
   }
 };
 
-// ✏️ 5. Edit Data Informasi Pinjaman
+//Edit Data Informasi Pinjaman
 export const editPinjaman = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
@@ -273,7 +271,7 @@ export const editPinjaman = async (req: IReqUser, res: Response) => {
     if (persenBunga !== undefined) pinjaman.persenBunga = Number(persenBunga);
     if (statusPinjaman !== undefined) pinjaman.statusPinjaman = statusPinjaman;
 
-    // Jika sisa tagihan diubah jadi 0, set Lunas
+    //Jika sisa tagihan diubah jadi 0, set Lunas
     if (pinjaman.totalYangHarusDibayar === 0) {
       pinjaman.statusPinjaman = "Lunas";
     }
@@ -291,7 +289,7 @@ export const editPinjaman = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🗑️ 6. Hapus Pinjaman
+//Hapus Pinjaman
 export const deletePinjaman = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;

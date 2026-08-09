@@ -19,7 +19,7 @@ export interface IUserToken
 
 export const generateToken = (user: IUserToken): string => {
   const token = jwt.sign(user, SECRET, {
-    expiresIn: "2h",
+    expiresIn: "2h", //expired saat sudah 2 jam 
   });
 
   return token;
@@ -27,11 +27,10 @@ export const generateToken = (user: IUserToken): string => {
 
 export const generateUser = (token: string): IUserToken | null => {
   try {
-    // jwt.verify akan membaca token dan memverifikasi signature-nya
+    //jwt.verify akan membaca token dan memverifikasi signature-nya
     const user = jwt.verify(token, SECRET) as IUserToken;
     return user;
   } catch (error) {
-    // Jika token expired, malformed, atau invalid, return null agar tidak crash
     return null;
   }
 };

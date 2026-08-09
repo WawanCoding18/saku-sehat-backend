@@ -3,7 +3,6 @@ import { streamGemini } from "./gemini.services";
 import { streamGroq } from "./groq.services";
 import { performance } from "perf_hooks";
 
-
 let currentProviderIndex = 0;
 const providers = Object.keys(aiConfig) as Array<keyof typeof aiConfig>;
 
@@ -36,7 +35,7 @@ const attemptProvider = async (
 
   const originalWrite = res.write.bind(res);
 
-  // menampung teks potongan dari stream
+  //menampung teks potongan dari stream
   res.write = (chunk: any, encoding?: any, callback?: any) => {
     const chunkStr = chunk.toString();
 
@@ -60,7 +59,6 @@ const attemptProvider = async (
   console.log(`==================================================`);
 
   try {
-    //Jalankan proses streaming sampai SELESAI total
     await streamFunctions[provider](message, res);
 
 
@@ -97,12 +95,11 @@ const attemptProvider = async (
     );
     return { success: false, hasSentChunk, error };
   } finally {
-    //fungsi res.write ke bentuk aslinya
     res.write = originalWrite;
   }
 };
 
-// Stream Teks
+//Stream Teks
 export const askAIStream = async (
   message: string,
   res: any,

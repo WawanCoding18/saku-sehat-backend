@@ -3,13 +3,12 @@ import SimulasiPinjamanModel from "../models/kalkulator.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import { askAIStream } from "../services/ai.KalkulatorBunga.services";
 
-// Tipe data khusus untuk menampung respon dari AI
 interface IAIResult {
   levelRisiko: "Rendah" | "Sedang" | "Tinggi";
   analisisAI: string;
 }
 
-// Hitung & Simpan Simulasi Kalkulator Bunga
+//Hitung & simpan Simulasi Kalkulator Bunga
 export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
@@ -31,7 +30,6 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
   const tenor = Number(tenorCicilan);
   const denda = Number(dendaPerHari) || 0;
 
-  // 1. Validasi Input (Sebelum SSE Header dipasang)
   if (!pokok || pokok <= 0) {
     return res
       .status(400)
@@ -46,20 +44,19 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
       .json({ message: "Tenor Cicilan harus lebih dari 0 bulan" });
   }
 
-  // RUMUS KALKULASI (Bunga Flat Rate per Bulan)
+  //Rumus kalkulasi bunga
   const totalBunga = pokok * (bunga / 100) * tenor;
   const totalPembayaran = pokok + totalBunga;
   const totalBayarPerBulan = totalPembayaran / tenor;
   const bungaEfektifTahunan = (Math.pow(1 + bunga / 100, 12) - 1) * 100;
 
-  // 🟢 2. PASANG HEADER SSE DI SINI (WAJIB SEBELUM askAIStream DIPANGGIL)
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  res.flushHeaders?.(); // Langsung kunci header ke client
+  res.flushHeaders?.();
 
   try {
-    // 🤖 3. Panggil AI Stream (Sekarang aman karena SSE Header sudah terpasang)
+    //Panggil AI Stream
     const aiResponse = (await askAIStream(
       JSON.stringify({
         jumlahPinjaman: pokok,
@@ -71,7 +68,7 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
         totalBayarPerBulan: Number(totalBayarPerBulan.toFixed(2)),
         bungaEfektifTahunan: Number(bungaEfektifTahunan.toFixed(1)),
       }),
-      res
+      res,
     )) as IAIResult;
 
     const levelRisiko =
@@ -81,7 +78,7 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
       aiResponse?.analisisAI ||
       "Cicilan ini masih tergolong aman jika **tidak melebihi 30% dari penghasilan bulanan**. Jaga pembayaran tepat waktu.";
 
-    // 💾 4. SIMPAN KE DATABASE
+    //Simpan ke Database
     const newSimulasi = await SimulasiPinjamanModel.create({
       user: userId,
       jumlahPinjaman: pokok,
@@ -97,13 +94,12 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
       analisisAI: analisisAI,
     });
 
-    // 🎯 5. Kirim event done beserta data simulasi baru
     res.write(
       `data: ${JSON.stringify({
         type: "done",
         message: "Berhasil menghitung dan menyimpan simulasi",
         data: newSimulasi,
-      })}\n\n`
+      })}\n\n`,
     );
   } catch (error: any) {
     console.error("❌ Error pada postKalkulatorBunga:", error.message);
@@ -112,10 +108,9 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
         type: "error",
         message: "Gagal menghitung simulasi",
         error: String(error.message || error),
-      })}\n\n`
+      })}\n\n`,
     );
   } finally {
-    // 🔒 6. Tutup koneksi SSE stream
     res.end();
   }
 };
@@ -131,7 +126,7 @@ export const getKalkulatorBunga = async (req: IReqUser, res: Response) => {
 
     const latestData = await SimulasiPinjamanModel.findOne({ user: userId })
       .select(
-        "jumlahPinjaman bungaPerBulan tenorCicilan dendaPerHari totalBunga totalPembayaran totalBayarPerBulan bungaEfektifTahunan levelRisiko analisisAI createdAt"
+        "jumlahPinjaman bungaPerBulan tenorCicilan dendaPerHari totalBunga totalPembayaran totalBayarPerBulan bungaEfektifTahunan levelRisiko analisisAI createdAt",
       )
       .sort({ createdAt: -1 });
 

@@ -3,10 +3,9 @@ import BudgetingModel from "../models/budgeting.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import TransaksiModel from "../models/transaksi.model";
 
-// 📝 CREATE (Tambah Budget Baru)
+//Tambah Budget Baru
 export const postBudgeting = async (req: IReqUser, res: Response) => {
   try {
-    // 1. Ambil ID User
     const userId = req.user?.id;
     if (!userId) {
       return res
@@ -14,7 +13,6 @@ export const postBudgeting = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    // 2. Ambil input dari body
     const { Kategori_Budget, Batas_PerBulan, Tanggal_Mulai, Tanggal_Selesai } =
       req.body;
 
@@ -22,15 +20,18 @@ export const postBudgeting = async (req: IReqUser, res: Response) => {
     const mulai = new Date(Tanggal_Mulai);
     const selesai = new Date(Tanggal_Selesai);
 
-    // 3. Validasi input dasar
     if (!Kategori_Budget) {
       return res.status(400).json({ message: "Kategori Budget wajib dipilih" });
     }
     if (!batas || batas <= 0) {
-      return res.status(400).json({ message: "Batas per Bulan harus lebih dari 0" });
+      return res
+        .status(400)
+        .json({ message: "Batas per Bulan harus lebih dari 0" });
     }
     if (isNaN(mulai.getTime()) || isNaN(selesai.getTime())) {
-      return res.status(400).json({ message: "Tanggal Mulai / Tanggal Selesai tidak valid" });
+      return res
+        .status(400)
+        .json({ message: "Tanggal Mulai / Tanggal Selesai tidak valid" });
     }
     if (selesai <= mulai) {
       return res
@@ -38,7 +39,7 @@ export const postBudgeting = async (req: IReqUser, res: Response) => {
         .json({ message: "Tanggal Selesai harus setelah Tanggal Mulai" });
     }
 
-    //Cegah kategori overlap(bentrok)
+    //Cegah kategori bentrok
     const budgetBentrok = await BudgetingModel.findOne({
       user: userId,
       Kategori_Budget,
@@ -84,7 +85,7 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
       createdAt: -1,
     });
 
-    // Hitung terpakai untuk tiap budget, berdasarkan transaksi di kategori & rentang tanggal yang sama
+    //Hitung terpakai untuk tiap budget, berdasarkan transaksi di kategori & rentang tanggal yang sama
     const formattedData = await Promise.all(
       listBudgeting.map(async (budget: any) => {
         const transaksiDalamPeriode = await TransaksiModel.find({
@@ -99,7 +100,7 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
 
         const terpakai = transaksiDalamPeriode.reduce(
           (acc, t) => acc + (t.nominal ?? 0),
-          0
+          0,
         );
 
         const tersisa = Math.max(0, budget.Batas_PerBulan - terpakai);
@@ -108,13 +109,16 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
             ? Number(((terpakai / budget.Batas_PerBulan) * 100).toFixed(0))
             : 0;
 
-        // Hitung sisa hari sampai Tanggal Selesai
+        //Hitung sisa hari sampai Tanggal Selesai
         const today = new Date();
         const selesai = new Date(budget.Tanggal_Selesai);
         const selisihMs = selesai.getTime() - today.getTime();
-        const sisaHari = Math.max(0, Math.ceil(selisihMs / (1000 * 60 * 60 * 24)));
+        const sisaHari = Math.max(
+          0,
+          Math.ceil(selisihMs / (1000 * 60 * 60 * 24)),
+        );
 
-        //status/badge berdasarkan persentase
+        //status berdasarkan persentase
         let statusLabel = "Batas Aman";
         if (persentase >= 100) {
           statusLabel = "Melebihi Budget";
@@ -128,22 +132,21 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
           Batas_PerBulan: budget.Batas_PerBulan,
           Tanggal_Mulai: budget.Tanggal_Mulai,
           Tanggal_Selesai: budget.Tanggal_Selesai,
-          terpakai,          
-          tersisa,           
-          persentase,        
-          sisaHari,          
-          statusLabel,       
+          terpakai,
+          tersisa,
+          persentase,
+          sisaHari,
+          statusLabel,
         };
-      })
+      }),
     );
-
 
     //Total dari semua Batas PerBulan
     const totalBudget = formattedData.reduce((acc, item) => {
       return acc + (item.Batas_PerBulan ?? 0);
     }, 0);
 
-    //Total dari semua "terpakai"
+    //Total dari semua terpakai
     const totalPengeluaran = formattedData.reduce((acc, item) => {
       return acc + (item.terpakai ?? 0);
     }, 0);
@@ -154,16 +157,19 @@ export const getAllBudgeting = async (req: IReqUser, res: Response) => {
     return res.status(200).json({
       message: "Berhasil mengambil data budgeting",
       summary: {
-        totalBudget,       
-        totalPengeluaran,   
-        sisaBudget,         
+        totalBudget,
+        totalPengeluaran,
+        sisaBudget,
       },
       data: formattedData,
     });
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Gagal mengambil data budgeting", error: String(error) });
+      .json({
+        message: "Gagal mengambil data budgeting",
+        error: String(error),
+      });
   }
 };
 
@@ -193,17 +199,25 @@ export const updateBudgeting = async (req: IReqUser, res: Response) => {
 
     const kategoriBaru = Kategori_Budget ?? budgetAny.Kategori_Budget;
     const batasBaru =
-      Batas_PerBulan !== undefined ? Number(Batas_PerBulan) : budgetAny.Batas_PerBulan;
-    const mulaiBaru = Tanggal_Mulai ? new Date(Tanggal_Mulai) : budgetAny.Tanggal_Mulai;
+      Batas_PerBulan !== undefined
+        ? Number(Batas_PerBulan)
+        : budgetAny.Batas_PerBulan;
+    const mulaiBaru = Tanggal_Mulai
+      ? new Date(Tanggal_Mulai)
+      : budgetAny.Tanggal_Mulai;
     const selesaiBaru = Tanggal_Selesai
       ? new Date(Tanggal_Selesai)
       : budgetAny.Tanggal_Selesai;
 
     if (!batasBaru || batasBaru <= 0) {
-      return res.status(400).json({ message: "Batas per Bulan harus lebih dari 0" });
+      return res
+        .status(400)
+        .json({ message: "Batas per Bulan harus lebih dari 0" });
     }
     if (isNaN(mulaiBaru.getTime()) || isNaN(selesaiBaru.getTime())) {
-      return res.status(400).json({ message: "Tanggal Mulai / Tanggal Selesai tidak valid" });
+      return res
+        .status(400)
+        .json({ message: "Tanggal Mulai / Tanggal Selesai tidak valid" });
     }
     if (selesaiBaru <= mulaiBaru) {
       return res
@@ -211,7 +225,7 @@ export const updateBudgeting = async (req: IReqUser, res: Response) => {
         .json({ message: "Tanggal Selesai harus setelah Tanggal Mulai" });
     }
 
-    //Cegah bentrok dengan budget LAIN (kecuali dirinya sendiri)
+    //Cegah bentrok dengan budget lainnya kecuali dirinya sendiri
     const budgetBentrok = await BudgetingModel.findOne({
       _id: { $ne: id },
       user: userId,
@@ -289,10 +303,14 @@ export const cekBudgetWarning = async (userId: string) => {
       tanggal: { $gte: budget.Tanggal_Mulai, $lte: budget.Tanggal_Selesai },
     });
 
-    const terpakai = transaksiDalamPeriode.reduce((acc, t) => acc + (t.nominal ?? 0), 0);
-    const persentase = budget.Batas_PerBulan > 0
-      ? Math.round((terpakai / budget.Batas_PerBulan) * 100)
-      : 0;
+    const terpakai = transaksiDalamPeriode.reduce(
+      (acc, t) => acc + (t.nominal ?? 0),
+      0,
+    );
+    const persentase =
+      budget.Batas_PerBulan > 0
+        ? Math.round((terpakai / budget.Batas_PerBulan) * 100)
+        : 0;
 
     if (persentase >= 80) {
       warnings.push({

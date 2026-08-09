@@ -72,7 +72,7 @@ const autoSaveCariAman = async (
         result.channel_violation_detected ?? result.channelViolationDetected
       ),
 
-      // Required String Fields
+      //output dari AI
       aiSummary: result.ai_summary || result.aiSummary || "Tidak ada ringkasan",
       aiDetail: result.ai_detail || result.aiDetail || "Tidak ada detail analisis",
       aiRecommendation:

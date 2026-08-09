@@ -4,7 +4,7 @@ import { IReqUser } from "../middlewares/auth.Middleware";
 import ProfileModel from "../models/profile.model";
 import TargetTabungModel from "../models/targetTabung.model";
 
-// 📝 Tambah Transaksi
+//Tambah Transaksi
 export const createTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -14,8 +14,15 @@ export const createTransaksi = async (req: IReqUser, res: Response) => {
         .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    const { Catatan_Transaksi, tipe, kategori, Sumber_Dana, nominal, tanggal, targetTabungId } =
-      req.body;
+    const {
+      Catatan_Transaksi,
+      tipe,
+      kategori,
+      Sumber_Dana,
+      nominal,
+      tanggal,
+      targetTabungId,
+    } = req.body;
 
     const transaksi = await TransaksiModel.create({
       user: userId,
@@ -38,7 +45,7 @@ export const createTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 📊 Hitung Data Transaksi
+//Hitung Data Transaksi
 export const hitungDataTransaksi = async (userId: string, type?: string) => {
   const allTransaksi = await TransaksiModel.find({ user: userId });
   const totalPemasukan = allTransaksi
@@ -50,9 +57,10 @@ export const hitungDataTransaksi = async (userId: string, type?: string) => {
     .reduce((acc, curr) => acc + (curr.nominal ?? 0), 0);
 
   const saldoAwal = await ProfileModel.findOne({ user: userId }).select(
-    "saldoSekarang"
+    "saldoSekarang",
   );
-  const saldo = (saldoAwal?.saldoSekarang ?? 0) + totalPemasukan - totalPengeluaran;
+  const saldo =
+    (saldoAwal?.saldoSekarang ?? 0) + totalPemasukan - totalPengeluaran;
 
   const filter: any = { user: userId };
   if (type) {
@@ -73,7 +81,7 @@ export const hitungDataTransaksi = async (userId: string, type?: string) => {
   };
 };
 
-// 📜 Ambil Semua Transaksi
+//Ambil Semua Transaksi
 export const getAllTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id?.toString();
@@ -91,7 +99,7 @@ export const getAllTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🔍 Ambil Transaksi By ID
+//Ambil Transaksi Berdasarkan ID
 export const getTransaksiById = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -113,27 +121,37 @@ export const getTransaksiById = async (req: IReqUser, res: Response) => {
   }
 };
 
-// ✏️ Update Transaksi (Sesuaikan jika terikat Target Tabung)
+//Update Transaksi
 export const updateTransaksi = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
     const { id } = req.params;
 
-    const oldTransaksi = await TransaksiModel.findOne({ _id: id, user: userId });
+    const oldTransaksi = await TransaksiModel.findOne({
+      _id: id,
+      user: userId,
+    });
     if (!oldTransaksi) {
-      return res
-        .status(404)
-        .json({ message: "Transaksi tidak ditemukan atau Anda tidak memiliki akses" });
+      return res.status(404).json({
+        message: "Transaksi tidak ditemukan atau Anda tidak memiliki akses",
+      });
     }
 
-    const newNominal = req.body.nominal !== undefined ? Number(req.body.nominal) : oldTransaksi.nominal;
+    const newNominal =
+      req.body.nominal !== undefined
+        ? Number(req.body.nominal)
+        : oldTransaksi.nominal;
 
-    // Jika transaksi ini terikat dengan Target Tabung, sesuaikan terkumpulNominal-nya
     if (oldTransaksi.targetTabungId && oldTransaksi.nominal !== newNominal) {
       const selisih = newNominal - oldTransaksi.nominal;
-      const target = await TargetTabungModel.findById(oldTransaksi.targetTabungId);
+      const target = await TargetTabungModel.findById(
+        oldTransaksi.targetTabungId,
+      );
       if (target) {
-        target.terkumpulNominal = Math.max(0, target.terkumpulNominal + selisih);
+        target.terkumpulNominal = Math.max(
+          0,
+          target.terkumpulNominal + selisih,
+        );
         if (target.terkumpulNominal < target.targetNominal) {
           target.status = "Aktif";
         } else {
@@ -146,7 +164,7 @@ export const updateTransaksi = async (req: IReqUser, res: Response) => {
     const updatedTransaksi = await TransaksiModel.findOneAndUpdate(
       { _id: id, user: userId },
       req.body,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     return res
@@ -159,7 +177,7 @@ export const updateTransaksi = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 🗑️ Delete Transaksi (Dengan ACID Transaction & Rollback Target Tabung)
+// Delete Transaksi dengan ACID Transaction
 export const deleteTransaksi = async (req: IReqUser, res: Response) => {
   const session = await TransaksiModel.startSession();
   session.startTransaction();
@@ -168,16 +186,20 @@ export const deleteTransaksi = async (req: IReqUser, res: Response) => {
     const { id } = req.params;
     const userId = req.user?.id;
 
-    // 1. Cari transaksi yang mau dihapus
-    const transaksi = await TransaksiModel.findOne({ _id: id, user: userId }).session(session);
+    //transaksi yang mau dihapus
+    const transaksi = await TransaksiModel.findOne({
+      _id: id,
+      user: userId,
+    }).session(session);
     if (!transaksi) {
       await session.abortTransaction();
       session.endSession();
       return res.status(404).json({ message: "Transaksi tidak ditemukan" });
     }
 
-    // 2. Balikkan nilai Saldo Profile
-    const profile = await ProfileModel.findOne({ user: userId }).session(session);
+    const profile = await ProfileModel.findOne({ user: userId }).session(
+      session,
+    );
     if (profile) {
       if (transaksi.tipe === "pemasukan") {
         profile.saldoSekarang -= transaksi.nominal;
@@ -187,12 +209,17 @@ export const deleteTransaksi = async (req: IReqUser, res: Response) => {
       await profile.save({ session });
     }
 
-    // 🟢 3. JIKA TRANSAKSI DARI SETOR TABUNG, KURANGI SALDO TARGET TABUNGNYA
     if (transaksi.targetTabungId) {
-      const target = await TargetTabungModel.findById(transaksi.targetTabungId).session(session);
+      const target = await TargetTabungModel.findById(
+        transaksi.targetTabungId,
+      ).session(session);
       if (target) {
-        target.terkumpulNominal = Math.max(0, target.terkumpulNominal - transaksi.nominal);
-        // Jika saldo terkumpul berkurang di bawah target, kembalikan status ke 'Aktif'
+        target.terkumpulNominal = Math.max(
+          0,
+          target.terkumpulNominal - transaksi.nominal,
+        );
+
+        //Jika saldo terkumpul berkurang di bawah target, kembalikan status ke Aktif
         if (target.terkumpulNominal < target.targetNominal) {
           target.status = "Aktif";
         }
@@ -200,10 +227,9 @@ export const deleteTransaksi = async (req: IReqUser, res: Response) => {
       }
     }
 
-    // 4. Hapus Transaksi
+    //Hapus Transaksi
     await TransaksiModel.findByIdAndDelete(id).session(session);
 
-    // Commit Transaction
     await session.commitTransaction();
     session.endSession();
 
@@ -214,6 +240,8 @@ export const deleteTransaksi = async (req: IReqUser, res: Response) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    return res.status(500).json({ message: "Gagal menghapus transaksi", error: String(error) });
+    return res
+      .status(500)
+      .json({ message: "Gagal menghapus transaksi", error: String(error) });
   }
 };

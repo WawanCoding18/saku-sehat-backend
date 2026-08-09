@@ -3,7 +3,6 @@ import { aiConfig } from "../utils/config/ai.config";
 import { GoogleGenAI, Type } from "@google/genai";
 import { FULL_SYSTEM_INSTRUCTION_FINANCIAL_HEALTH } from "../utils/FinancialHealth.prompts";
 
-// Client khusus Teks (menggunakan API Key dari config)
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
 
 export const streamGemini = async (
@@ -26,7 +25,7 @@ export const streamGemini = async (
   console.log(" Est. Input Tokens    : ~" + estimatedTokens, "tokens");
   console.log("--------------------------------------------------");
 
-  // Schema SubScore untuk pilar
+  //Schema SubScore untuk pilar
   const SubScoreSchema = {
     type: Type.OBJECT,
     properties: {
@@ -73,7 +72,6 @@ export const streamGemini = async (
     config: {
       systemInstruction: dynamicSystemInstruction,
       responseMimeType: "application/json",
-      // Mengunci struktur output dengan Schema bawaan SDK Gemini khusus Financial Health
       responseSchema: {
         type: Type.OBJECT,
         properties: {

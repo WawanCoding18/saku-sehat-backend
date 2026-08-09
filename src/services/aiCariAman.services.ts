@@ -4,10 +4,8 @@ import { streamGroq } from "./aiCariAmanGroq";
 import { RiskAnalysisSchema, RiskAnalysis } from "../utils/riskAnalisis";
 import { performance } from "perf_hooks";
 
-
 let currentProviderIndex = 0;
 const providers = Object.keys(aiConfig) as Array<keyof typeof aiConfig>;
-
 
 type StreamFunction = (
   message: string,
@@ -15,38 +13,33 @@ type StreamFunction = (
   res: any,
 ) => Promise<void>;
 
-
 const streamFunctions: Record<keyof typeof aiConfig, StreamFunction> = {
   gemini: streamGemini,
   groq: streamGroq,
 };
 
-
 const recalculateScore = (data: any): number => {
   let score = 0;
 
-  if (data.soceng_indicated) score += 40;      
-  if (data.manipulative_language_detected) score += 15; 
-  if (data.interest_warning) score += 30;          
-  if (data.apk_download_indicated) score += 35;     
-  if (data.sensitive_data_requested) score += 50;   
+  if (data.soceng_indicated) score += 40;
+  if (data.manipulative_language_detected) score += 15;
+  if (data.interest_warning) score += 30;
+  if (data.apk_download_indicated) score += 35;
+  if (data.sensitive_data_requested) score += 50;
   if (data.channel_violation_detected) score += 25;
 
-
-  // Terapkan faktor ojk_match_status secara matematis secara pasti
+  //Terapkan faktor ojk_match_status secara matematis secara pasti
   if (data.is_ojk_legal === "Terdaftar Resmi") {
     score = score * 0.6;
   } else if (data.is_ojk_legal === "Tidak Ditemukan") {
     score = score * 1.2;
   }
 
-  // Clamp ke rentang 0-100 dan bulatkan
   return Math.min(100, Math.max(0, Math.round(score)));
 };
 
-
 const processRiskData = (parsedJson: any): RiskAnalysis => {
-  // Hitung ulang risk_score dari flag boolean — Abaikan angka yang dikasih AI
+  //Hitung ulang risk_score dari flag boolean — Abaikan angka yang dikasih AI
   parsedJson.risk_score = recalculateScore(parsedJson);
 
   //Mencegah kontradiksi: scam/soceng true tapi skornya kebetulan masih rendah
@@ -75,13 +68,12 @@ const processRiskData = (parsedJson: any): RiskAnalysis => {
   const validation = RiskAnalysisSchema.safeParse(parsedJson);
   if (!validation.success) {
     throw new Error(
-      `JSON tidak sesuai skema: ${JSON.stringify(validation.error.issues)}`
+      `JSON tidak sesuai skema: ${JSON.stringify(validation.error.issues)}`,
     );
   }
 
   return validation.data;
 };
-
 
 const attemptProvider = async (
   provider: keyof typeof aiConfig,
@@ -110,9 +102,7 @@ const attemptProvider = async (
           fullAnswerText += parsed.text;
           hasSentChunk = true;
         }
-      } catch (e) {
-       
-      }
+      } catch (e) {}
     }
 
     return originalWrite(chunk, encoding, callback);
@@ -138,7 +128,7 @@ const attemptProvider = async (
 
     const validResult = processRiskData(parsedJson);
 
-    // Hitung durasi mentah dalam ms
+    //Hitung durasi mentah dalam ms
     const durationMs = performance.now() - startTime;
     const durationSec = (durationMs / 1000).toFixed(2);
 
@@ -163,7 +153,7 @@ const attemptProvider = async (
   }
 };
 
-// Stream Teks
+//Stream Teks
 export const askAIStream = async (
   message: string,
   ojkMatchStatus: string,

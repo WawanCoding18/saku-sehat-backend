@@ -9,11 +9,6 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-// const dataOjkLegalList = OJKData.map((item: any) => ({
-//   ...item,
-//   is_active: true,
-// }));
-
 async function askQuestion(): Promise<string> {
   return new Promise((resolve) => {
     rl.question(
@@ -26,16 +21,6 @@ async function askQuestion(): Promise<string> {
 async function seed() {
   console.log("⏳ Menghubungkan ke MongoDB...");
   await connectDB();
-
-  // Opsional: hapus data lama dulu kalau mau seed ulang bersih
-  // console.log("🧹 Membersihkan data lama...");
-  // await OjkLegalListModel.deleteMany({});
-
-  // Opsional: masukkan data dari JSON
-  // console.log("🚀 Memasukkan data baru...");
-  // const insertedData = await OjkLegalListModel.insertMany(dataOjkLegalList);
-  // console.log(`✅ BERHASIL: ${insertedData.length} data dimasukkan!`);
-
   const userMessage = await askQuestion();
 
   const totalActive = await OjkLegalListModel.countDocuments({

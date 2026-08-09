@@ -3,7 +3,7 @@ import TargetTabungModel from "../models/targetTabung.model";
 import TransaksiModel from "../models/transaksi.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 
-// 📝 1. POST (Tambah Target Tabung Baru)
+//Tambah Target Tabungan Baru
 export const postTargetTabung = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -18,7 +18,6 @@ export const postTargetTabung = async (req: IReqUser, res: Response) => {
     const nominalTarget = Number(targetNominal);
     const deadline = new Date(deadlineTarget);
 
-    // Validasi input
     if (!icon) {
       return res.status(400).json({ message: "Icon target wajib dipilih" });
     }
@@ -26,13 +25,17 @@ export const postTargetTabung = async (req: IReqUser, res: Response) => {
       return res.status(400).json({ message: "Nama Target wajib diisi" });
     }
     if (!nominalTarget || nominalTarget <= 0) {
-      return res.status(400).json({ message: "Target Nominal harus lebih dari 0" });
+      return res
+        .status(400)
+        .json({ message: "Target Nominal harus lebih dari 0" });
     }
     if (isNaN(deadline.getTime())) {
       return res.status(400).json({ message: "Deadline Target tidak valid" });
     }
     if (deadline <= new Date()) {
-      return res.status(400).json({ message: "Deadline Target harus di masa mendatang" });
+      return res
+        .status(400)
+        .json({ message: "Deadline Target harus di masa mendatang" });
     }
 
     const newTarget = await TargetTabungModel.create({
@@ -52,11 +55,14 @@ export const postTargetTabung = async (req: IReqUser, res: Response) => {
   } catch (error: any) {
     return res
       .status(500)
-      .json({ message: "Gagal membuat target tabung", error: String(error.message || error) });
+      .json({
+        message: "Gagal membuat target tabung",
+        error: String(error.message || error),
+      });
   }
 };
 
-// 📊 2. GET ALL (Ambil Semua Target Tabung + Summary untuk UI Cards)
+//Ambil Semua Target Tabung
 export const getAllTargetTabung = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -75,12 +81,18 @@ export const getAllTargetTabung = async (req: IReqUser, res: Response) => {
     const formattedData = listTarget.map((item) => {
       const persentase =
         item.targetNominal > 0
-          ? Math.min(100, Math.round((item.terkumpulNominal / item.targetNominal) * 100))
+          ? Math.min(
+              100,
+              Math.round((item.terkumpulNominal / item.targetNominal) * 100),
+            )
           : 0;
 
       const deadline = new Date(item.deadlineTarget);
       const selisihMs = deadline.getTime() - today.getTime();
-      const sisaHari = Math.max(0, Math.ceil(selisihMs / (1000 * 60 * 60 * 24)));
+      const sisaHari = Math.max(
+        0,
+        Math.ceil(selisihMs / (1000 * 60 * 60 * 24)),
+      );
 
       return {
         _id: item._id,
@@ -95,9 +107,14 @@ export const getAllTargetTabung = async (req: IReqUser, res: Response) => {
       };
     });
 
-    // Perhitungan Summary untuk 2 Card Atas di UI
-    const totalMenabung = listTarget.reduce((acc, item) => acc + (item.terkumpulNominal ?? 0), 0);
-    const totalTarget = listTarget.reduce((acc, item) => acc + (item.targetNominal ?? 0), 0);
+    const totalMenabung = listTarget.reduce(
+      (acc, item) => acc + (item.terkumpulNominal ?? 0),
+      0,
+    );
+    const totalTarget = listTarget.reduce(
+      (acc, item) => acc + (item.targetNominal ?? 0),
+      0,
+    );
 
     return res.status(200).json({
       message: "Berhasil mengambil data target tabung",
@@ -111,33 +128,39 @@ export const getAllTargetTabung = async (req: IReqUser, res: Response) => {
   } catch (error: any) {
     return res
       .status(500)
-      .json({ message: "Gagal mengambil data target tabung", error: String(error.message || error) });
+      .json({
+        message: "Gagal mengambil data target tabung",
+        error: String(error.message || error),
+      });
   }
 };
 
-// 💰 3. PUT / Setor Tabungan (Update Saldo Tabungan + Otomatis Buat Transaksi Pengeluaran)
+//Setor Tabungan Update Saldo Tabungan + Otomatis Buat Transaksi Pengeluaran
 export const setorTargetTabung = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
-    const { nominalSetor, Sumber_Dana } = req.body; 
+    const { nominalSetor, Sumber_Dana } = req.body;
 
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
     const setor = Number(nominalSetor);
     if (!setor || setor <= 0) {
-      return res.status(400).json({ message: "Nominal setor harus lebih dari 0" });
+      return res
+        .status(400)
+        .json({ message: "Nominal setor harus lebih dari 0" });
     }
 
-    // 1. Cari target tabung
+    //Cari target tabung
     const target = await TargetTabungModel.findOne({ _id: id, user: userId });
     if (!target) {
       return res.status(404).json({ message: "Target tabung tidak ditemukan" });
     }
 
-    // 2. Update saldo akumulasi target
     target.terkumpulNominal += setor;
 
     if (target.terkumpulNominal >= target.targetNominal) {
@@ -146,7 +169,6 @@ export const setorTargetTabung = async (req: IReqUser, res: Response) => {
 
     await target.save();
 
-    // 3. Otomatis buatkan entri transaksi pengeluaran
     await TransaksiModel.create({
       user: userId,
       Catatan_Transaksi: `Setor Tabungan: ${target.namaTarget}`,
@@ -159,24 +181,29 @@ export const setorTargetTabung = async (req: IReqUser, res: Response) => {
     });
 
     return res.status(200).json({
-      message: `Berhasil menyisihkan Rp${setor.toLocaleString('id-ID')} ke ${target.namaTarget}`,
+      message: `Berhasil menyisihkan Rp${setor.toLocaleString("id-ID")} ke ${target.namaTarget}`,
       data: target,
     });
   } catch (error: any) {
     return res
       .status(500)
-      .json({ message: "Gagal memperbarui tabungan", error: String(error.message || error) });
+      .json({
+        message: "Gagal memperbarui tabungan",
+        error: String(error.message || error),
+      });
   }
 };
 
-// ✏️ 4. PUT / Edit Informasi Target Tabung
+//Edit Informasi Target Tabung
 export const editTargetTabung = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
     const target = await TargetTabungModel.findOne({ _id: id, user: userId });
@@ -184,13 +211,23 @@ export const editTargetTabung = async (req: IReqUser, res: Response) => {
       return res.status(404).json({ message: "Target tabung tidak ditemukan" });
     }
 
-    const { icon, namaTarget, targetNominal, deadlineTarget, terkumpulNominal, status } = req.body;
+    const {
+      icon,
+      namaTarget,
+      targetNominal,
+      deadlineTarget,
+      terkumpulNominal,
+      status,
+    } = req.body;
 
     if (icon !== undefined) target.icon = icon;
     if (namaTarget !== undefined) target.namaTarget = namaTarget;
-    if (targetNominal !== undefined) target.targetNominal = Number(targetNominal);
-    if (deadlineTarget !== undefined) target.deadlineTarget = new Date(deadlineTarget);
-    if (terkumpulNominal !== undefined) target.terkumpulNominal = Number(terkumpulNominal);
+    if (targetNominal !== undefined)
+      target.targetNominal = Number(targetNominal);
+    if (deadlineTarget !== undefined)
+      target.deadlineTarget = new Date(deadlineTarget);
+    if (terkumpulNominal !== undefined)
+      target.terkumpulNominal = Number(terkumpulNominal);
     if (status !== undefined) target.status = status;
 
     if (target.terkumpulNominal >= target.targetNominal) {
@@ -208,11 +245,14 @@ export const editTargetTabung = async (req: IReqUser, res: Response) => {
   } catch (error: any) {
     return res
       .status(500)
-      .json({ message: "Gagal mengupdate target tabung", error: String(error.message || error) });
+      .json({
+        message: "Gagal mengupdate target tabung",
+        error: String(error.message || error),
+      });
   }
 };
 
-// 🗑️ 5. DELETE (Hapus Target Tabung)
+//Hapus Target Tabung
 export const deleteTargetTabung = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
@@ -226,7 +266,9 @@ export const deleteTargetTabung = async (req: IReqUser, res: Response) => {
     if (!deletedData) {
       return res
         .status(404)
-        .json({ message: "Target tabung tidak ditemukan atau bukan milik Anda" });
+        .json({
+          message: "Target tabung tidak ditemukan atau bukan milik Anda",
+        });
     }
 
     return res.status(200).json({
@@ -235,6 +277,9 @@ export const deleteTargetTabung = async (req: IReqUser, res: Response) => {
   } catch (error: any) {
     return res
       .status(500)
-      .json({ message: "Gagal menghapus target tabung", error: String(error.message || error) });
+      .json({
+        message: "Gagal menghapus target tabung",
+        error: String(error.message || error),
+      });
   }
 };

@@ -88,7 +88,7 @@ export const streamGroq = async (message: string, res: any): Promise<void> => {
         );
         hasReceivedContent = true;
       } catch (e) {
-        // abaikan chunk parsial
+        
       }
     }
   }

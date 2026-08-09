@@ -17,7 +17,7 @@ import { deleteTargetTabung, editTargetTabung, getAllTargetTabung, postTargetTab
 
 const router = express.Router();
 
-//api to connect to auth/register, login, and me
+//router auth/register, login, and me
 router.post("/auth/register", authController.register);
 router.post("/auth/login", authController.login);
 router.get("/auth/me", authMiddleware ,authController.me);
@@ -30,7 +30,7 @@ router.post("/profile/onboarding", authMiddleware, postProfile);
 router.get("/profile", authMiddleware, getProfile)
 router.put("/profile", authMiddleware, updateProfile)
 
-// router.post("/catatan keuangan/transaksi-manual", authController.transaksi-manual)
+//router transaksi
 router.post("/catatan-keuangan/transaksi", authMiddleware, createTransaksi);
 router.get("/catatan-keuangan", authMiddleware, getAllTransaksi);
 router.get("/catatan-keunagan/:id", authMiddleware, getTransaksiById);

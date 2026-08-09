@@ -3,23 +3,22 @@ import { streamGemini } from "./ai.FinancialHealthGemini.services";
 import { streamGroq } from "./ai.FinancialHealthGroq.services";
 import { performance } from "perf_hooks";
 
-// ==== Config & Provider Teks ====
+//Config & Provider Teks
 let currentProviderIndex = 0;
 const providers = Object.keys(aiConfig) as Array<keyof typeof aiConfig>;
 
-// ==== 1. Tipe Data Fungsi Stream ====
+//Tipe Data Fungsi Stream
 type StreamFunction = (
   message: string,
   res: any,
 ) => Promise<void>;
 
-// ==== 2. Mapping Fungsi Stream (Teks) ====
+//Fungsi Stream
 const streamFunctions: Record<keyof typeof aiConfig, StreamFunction> = {
   gemini: streamGemini,
   groq: streamGroq,
 };
 
-// ==== 3. Attempt Provider: TEKS ====
 const attemptProvider = async (
   provider: keyof typeof aiConfig,
   message: string,
@@ -36,7 +35,6 @@ const attemptProvider = async (
 
   const originalWrite = res.write.bind(res);
 
-  // Intercept res.write untuk menampung teks potongan (chunk) dari stream
   res.write = (chunk: any, encoding?: any, callback?: any) => {
     const chunkStr = chunk.toString();
 
@@ -44,11 +42,11 @@ const attemptProvider = async (
       try {
         const parsed = JSON.parse(chunkStr.slice(6));
         if (parsed.type === "answer" && parsed.text) {
-          fullAnswerText += parsed.text; // Gabungkan semua potongan teks AI
+          fullAnswerText += parsed.text;
           hasSentChunk = true;
         }
       } catch (e) {
-        // Abaikan parse error per-chunk jika belum utuh
+
       }
     }
 
@@ -60,7 +58,7 @@ const attemptProvider = async (
   console.log(`==================================================`);
 
   try {
-    // Jalankan proses streaming sampai SELESAI total
+    //Jalankan proses streaming sampai selesai total
     await streamFunctions[provider](message, res);
 
     let validResult: any;
@@ -95,13 +93,11 @@ const attemptProvider = async (
     );
     return { success: false, hasSentChunk, error };
   } finally {
-    // Kembalikan res.write ke fungsi aslinya
     res.write = originalWrite;
   }
 };
 
-// ==== 4. Stream Teks Utama ====
-// 🎯 PENTING: Return type diubah ke Promise<any> agar kompatibel saat di-cast 'as IAIResult'
+//Stream Teks Utama
 export const askAIStream = async (
   message: string,
   res: any,
@@ -119,7 +115,7 @@ export const askAIStream = async (
     );
 
     if (result.success && result.result) {
-      return result.result; // Mengembalikan hasil JSON valid (levelRisiko & analisisAI)
+      return result.result; //Mengembalikan hasil JSON valid
     }
 
     lastError = result.error;

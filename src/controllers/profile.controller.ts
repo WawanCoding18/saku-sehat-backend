@@ -3,7 +3,7 @@ import ProfileModel from "../models/profile.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 import UserModel  from "../models/user.model";
 
-//Hanya milik user yang sedang login
+
 export const postProfile = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -78,12 +78,10 @@ export const updateProfile = async (req: IReqUser, res: Response) => {
       );
     }
 
-    //Susun payload khusus ProfileModel
     const updateDataProfile: Record<string, any> = {};
     if (fotoProfilUrl !== undefined) updateDataProfile.fotoProfilUrl = fotoProfilUrl;
     if (sumberPemasukan !== undefined) updateDataProfile.sumberPemasukan = sumberPemasukan;
 
-    //Update ProfileModel
     const profile = await ProfileModel.findOneAndUpdate(
       { user: userId },
       updateDataProfile,

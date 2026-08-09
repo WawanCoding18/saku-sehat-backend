@@ -17,7 +17,7 @@ let cachedPlatforms: any[] = [];
 let fuseInstance: Fuse<any> | null = null;
 let lastFetchTime = 0;
 let isFetching = false;
-const CACHE_TTL = 60 * 60 * 1000; // Cache 1 jam
+const CACHE_TTL = 60 * 60 * 1000;
 
 async function getOjkDataAndFuse() {
   const now = Date.now();
@@ -51,7 +51,7 @@ export const checkOjkLegality = async (
 ): Promise<OjkLookupResult> => {
   const userQuery = query.toLowerCase().trim();
 
-  // Guard clause: kosong atau terlalu pendek
+  //Guard clause: kosong atau terlalu pendek
   if (!userQuery || userQuery.length < 4) {
     return {
       is_ojk_legal: false,
@@ -61,8 +61,7 @@ export const checkOjkLegality = async (
 
   const { allPlatforms, fuse } = await getOjkDataAndFuse();
 
-  // A. Fuse.js — hanya untuk query >= 5 karakter dengan score ketat
-  // Mencegah false positive seperti "Ada" match ke "AdaKami"
+  //Mencegah false positive seperti "Ada" match ke "AdaKami"
   const fuseResults =
     userQuery.length >= 5
       ? fuse
@@ -71,11 +70,11 @@ export const checkOjkLegality = async (
           .map((res) => res.item)
       : [];
 
-  // B. Manual filter — untuk kalimat panjang yang mengandung nama platform
+  //Manual filter untuk kalimat panjang yang mengandung nama platform
   const manualMatches = allPlatforms.filter((p) => {
     const platformName = p.platform_name.toLowerCase().trim();
 
-    // Platform harus minimal 4 karakter agar tidak false positive
+    //Platform harus minimal 4 karakter agar tidak false positive
     const isPlatformInQuery =
       platformName.length >= 4 && userQuery.includes(platformName);
 
@@ -92,10 +91,10 @@ console.log("Query length:", userQuery.length);
 console.log("Fuse dijalankan:", userQuery.length >= 5);
 console.log("Fuse results:", fuseResults.map(r => r.platform_name));
 console.log("Manual matches:", manualMatches.map(r => r.platform_name));
-  // Gabungkan: manual dulu (lebih presisi), Fuse kemudian
+
   const combinedMatches = [...manualMatches, ...fuseResults];
 
-  // Deduplikasi berdasarkan platform_name
+  //Deduplikasi berdasarkan platform_name
   const uniqueMatchesMap = new Map();
   combinedMatches.forEach((item) => {
     uniqueMatchesMap.set(item.platform_name, item);

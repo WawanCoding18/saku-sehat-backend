@@ -3,14 +3,12 @@ import { aiConfig } from "../utils/config/ai.config";
 import { GoogleGenAI, Type } from "@google/genai";
 import { FULL_SYSTEM_INSTRUCTION_KALKULATOR_BUNGA } from "../utils/KalkulatorBunga.prompts";
 
-// Client khusus Teks (menggunakan API Key dari config)
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
 
 export const streamGemini = async (
   message: string,
   res: any,
 ): Promise<void> => {
-  // Ambil system instruction dinamis
   const dynamicSystemInstruction = FULL_SYSTEM_INSTRUCTION_KALKULATOR_BUNGA;
   const userMsgLength = message?.length || 0;
   const systemPromptLength = dynamicSystemInstruction?.length || 0;
@@ -32,7 +30,6 @@ export const streamGemini = async (
     config: {
       systemInstruction: dynamicSystemInstruction,
       responseMimeType: "application/json",
-      // Mengunci struktur output dengan Schema bawaan SDK Gemini khusus Kalkulator Bunga
       responseSchema: {
         type: Type.OBJECT,
         properties: {

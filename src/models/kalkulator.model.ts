@@ -34,7 +34,7 @@ const SimulasiPinjamanSchema = new Schema<ISimulasiPinjaman>(
       min: 0,
     },
     tenorCicilan: {
-      type: Number, // dalam satuan bulan
+      type: Number,
       required: true,
       min: 1,
     },

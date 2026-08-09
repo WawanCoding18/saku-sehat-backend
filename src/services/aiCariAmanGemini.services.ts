@@ -3,7 +3,6 @@ import { aiConfig } from "../utils/config/ai.config";
 import { GoogleGenAI } from "@google/genai";
 import { FULL_SYSTEM_INSTRUCTION_OJK } from "../utils/OJK.prompts";
 
-// Client khusus Teks & Gambar dengan menggunakan API Key dari masing-masing config
 const aiText = new GoogleGenAI({ apiKey: aiConfig.gemini.apiKey });
 
 export const streamGemini = async (

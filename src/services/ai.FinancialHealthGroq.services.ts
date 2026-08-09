@@ -1,5 +1,3 @@
-// 📄 File: src/services/ai.FinancialHealth.services.ts
-
 import { aiConfig } from "../utils/config/ai.config";
 import { FULL_SYSTEM_INSTRUCTION_FINANCIAL_HEALTH } from "../utils/FinancialHealth.prompts";
 
@@ -90,7 +88,7 @@ export const streamGroq = async (message: string, res: any): Promise<void> => {
         );
         hasReceivedContent = true;
       } catch (e) {
-        // abaikan chunk parsial
+  
       }
     }
   }
