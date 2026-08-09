@@ -12,7 +12,7 @@ import { getBeforeYouBorrow, postBeforeYouBorrow } from "../controllers/beforeYo
 import { getCariAman, postCariAman } from "../controllers/cariAman.controller";
 import { getFinancialHealth, postFinancialHealth } from "../controllers/financialHealth.controller"
 import { getDashboard } from "../controllers/dashboard.controller";
-import { deleteTargetTabung, editTargetTabung, getAllTargetTabung, postTargetTabung } from "../controllers/targetTabung.controller";
+import { deleteTargetTabung, editTargetTabung, getAllTargetTabung, postTargetTabung, setorTargetTabung } from "../controllers/targetTabung.controller";
 
 
 const router = express.Router();
@@ -60,6 +60,7 @@ router.get("/kalkulator-bunga/output", authMiddleware, getKalkulatorBunga);
 //router budgeting
 router.post("/catatan-keuangan/budgeting/tambah-budget", authMiddleware, postBudgeting);
 router.get("/catatan-keuangan/budgeting", authMiddleware, getAllBudgeting);
+router.put("/catatan-keuangan/target-tabung/:id/setor", authMiddleware, setorTargetTabung);
 router.put("/catatan-keuangan/budgeting/:id", authMiddleware, updateBudgeting);
 router.delete("/catatan-keuangan/budgeting/:id", authMiddleware, deleteBudgeting);
 
