@@ -486,13 +486,21 @@ export const getAllPinjaman = async (req: IReqUser, res: Response) => {
     }
 
     const result = await hitungDataPinjaman(userId);
+    const summary = result?.summary || {
+      belumDibayar: 0,
+      sudahDibayar: 0,
+      kewajibanPerbulan: 0,
+    };
+    const totalPinjaman = result?.totalPinjaman ?? 0;
+    const sisaSlot = result?.sisaSlot ?? 3;
+    const data = result?.data || [];
 
     return res.status(200).json({
       message: "Berhasil mengambil data pinjaman",
-      summary: result.summary,
-      totalPinjaman: result.totalPinjaman,
-      sisaSlot: result.sisaSlot,
-      data: result.data,
+      summary,
+      totalPinjaman,
+      sisaSlot,
+      data,
     });
   } catch (error) {
     return res
@@ -500,7 +508,6 @@ export const getAllPinjaman = async (req: IReqUser, res: Response) => {
       .json({ message: "Gagal mengambil data pinjaman", error: String(error) });
   }
 };
-
 //Aksi Bayar Cicilan Kurangi Tagihan + Otomatis Catat Transaksi Pengeluaran
 export const putPinjaman = async (req: IReqUser, res: Response) => {
   try {
