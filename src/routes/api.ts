@@ -12,6 +12,7 @@ import { getBeforeYouBorrow, postBeforeYouBorrow } from "../controllers/beforeYo
 import { getCariAman, postCariAman } from "../controllers/cariAman.controller";
 import { getFinancialHealth, postFinancialHealth } from "../controllers/financialHealth.controller"
 import { getDashboard } from "../controllers/dashboard.controller";
+import { deleteTargetTabung, editTargetTabung, getAllTargetTabung, postTargetTabung } from "../controllers/targetTabung.controller";
 
 
 const router = express.Router();
@@ -48,7 +49,7 @@ router.delete("/catatan-keuangan/pinjaman/:id", authMiddleware, deletePinjaman);
 
 //router kalkulator bunga
 router.post('/kalkulator-bunga', authMiddleware, postKalkulatorBunga);
-router.get("/kalkulator-bunga/output", authMiddleware, getKalkulatorBunga)
+router.get("/kalkulator-bunga/output", authMiddleware, getKalkulatorBunga); 
 
 //router budgeting
 router.post("/catatan-keuangan/budgeting/tambah-budget", authMiddleware, postBudgeting);
@@ -67,6 +68,12 @@ router.get("/cariAman/output", authMiddleware, getCariAman);
 //router financialhealth
 router.post("/financial-health/output", authMiddleware, postFinancialHealth)
 router.get("/dashboard/financial-health", authMiddleware, getFinancialHealth)
+
+//router target tabung
+router.post("/target-tabung/tambah-target", authMiddleware, postTargetTabung)
+router.get("/target-tabung", authMiddleware, getAllTargetTabung)
+router.put("/target-tabung/:id", authMiddleware, editTargetTabung)
+router.delete("/target-tabung/:id", authMiddleware, deleteTargetTabung)
 
 //router dashboard
 router.get("/dashboard", authMiddleware, getDashboard)

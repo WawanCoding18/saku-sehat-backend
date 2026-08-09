@@ -44,7 +44,7 @@ const hitungDisiplinAnggaran = async (userId: string) => {
 
     const terpakai = transaksiDalamPeriode.reduce(
       (acc, t) => acc + (t.nominal ?? 0),
-      0
+      0,
     );
 
     if (terpakai <= budget.Batas_PerBulan) {
@@ -92,7 +92,7 @@ const hitungPengelolaanPinjaman = async (userId: string) => {
   });
   const totalPemasukan = transaksiPemasukan.reduce(
     (acc, t) => acc + (t.nominal ?? 0),
-    0
+    0,
   );
 
   if (listPinjaman.length === 0) {
@@ -107,7 +107,8 @@ const hitungPengelolaanPinjaman = async (userId: string) => {
   }
 
   const kewajibanPerbulan = listPinjaman.reduce((acc, item) => {
-    if (item.sisaTagihan > 0) return acc + (item.cicilanBulanan ?? 0);
+    if (item.statusPinjaman !== "Lunas")
+      return acc + (item.cicilanBulanan ?? 0);
     return acc;
   }, 0);
 
@@ -136,8 +137,8 @@ const hitungPengelolaanPinjaman = async (userId: string) => {
     rasioDTI <= 0.3
       ? "Kondisi ini sangat aman."
       : rasioDTI <= 0.5
-      ? "Masih aman, tapi usahakan jangan bertambah supaya keuangan tetap sehat."
-      : "Ini sudah cukup berat, sebaiknya prioritaskan pelunasan cicilan sebelum ambil pinjaman baru."
+        ? "Masih aman, tapi usahakan jangan bertambah supaya keuangan tetap sehat."
+        : "Ini sudah cukup berat, sebaiknya prioritaskan pelunasan cicilan sebelum ambil pinjaman baru."
   }`;
 
   return { skor, maksimal: 50, persentase, status, ringkasan };
@@ -168,7 +169,7 @@ export const hitungDanSimpanFinancialHealth = async (userId: string) => {
       disiplinAnggaran: { ...disiplinAnggaran, saranPerkembangan: [] },
       pengelolaanPinjaman: { ...pengelolaanPinjaman, saranPerkembangan: [] },
     },
-    { new: true, upsert: true, runValidators: true }
+    { new: true, upsert: true, runValidators: true },
   );
 
   return financialHealth;
@@ -191,7 +192,9 @@ export const postFinancialHealth = async (req: IReqUser, res: Response) => {
   try {
     // 2. Jalankan logika kalkulasi matematika
     const disiplinAnggaran = await hitungDisiplinAnggaran(userId.toString());
-    const pengelolaanPinjaman = await hitungPengelolaanPinjaman(userId.toString());
+    const pengelolaanPinjaman = await hitungPengelolaanPinjaman(
+      userId.toString(),
+    );
     const skorTotal = disiplinAnggaran.skor + pengelolaanPinjaman.skor;
     const grade = tentukanGrade(skorTotal);
 
@@ -203,7 +206,7 @@ export const postFinancialHealth = async (req: IReqUser, res: Response) => {
         disiplinAnggaran,
         pengelolaanPinjaman,
       }),
-      res
+      res,
     )) as unknown as IAIResult;
 
     // Fallback saran jika terjadi kendala pada respon AI
@@ -213,7 +216,8 @@ export const postFinancialHealth = async (req: IReqUser, res: Response) => {
       "Kalau ada sisa budget, simpan ke tabungan daripada dihabiskan.",
     ];
 
-    const saranPinjaman = aiResponse?.pengelolaanPinjaman?.saranPerkembangan || [
+    const saranPinjaman = aiResponse?.pengelolaanPinjaman
+      ?.saranPerkembangan || [
       "Prioritaskan melunasi utang dengan bunga paling tinggi.",
       "Tunda ambil pinjaman baru kalau belum benar-benar perlu.",
       "Kalau ada uang lebih, coba bayar cicilan lebih awal.",
@@ -229,7 +233,8 @@ export const postFinancialHealth = async (req: IReqUser, res: Response) => {
         disiplinAnggaran: {
           ...disiplinAnggaran,
           ringkasan:
-            aiResponse?.disiplinAnggaran?.ringkasan || disiplinAnggaran.ringkasan,
+            aiResponse?.disiplinAnggaran?.ringkasan ||
+            disiplinAnggaran.ringkasan,
           saranPerkembangan: saranDisiplin,
         },
         pengelolaanPinjaman: {
@@ -240,7 +245,7 @@ export const postFinancialHealth = async (req: IReqUser, res: Response) => {
           saranPerkembangan: saranPinjaman,
         },
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true },
     );
 
     // 🎯 5. Kirim event done beserta payload data final
@@ -249,7 +254,7 @@ export const postFinancialHealth = async (req: IReqUser, res: Response) => {
         type: "done",
         message: "Berhasil menghitung detail Financial Health",
         data: financialHealth,
-      })}\n\n`
+      })}\n\n`,
     );
   } catch (error: any) {
     console.error("❌ Error pada postFinancialHealth:", error.message);
@@ -258,7 +263,7 @@ export const postFinancialHealth = async (req: IReqUser, res: Response) => {
         type: "error",
         message: "Gagal menghitung Financial Health",
         error: String(error.message || error),
-      })}\n\n`
+      })}\n\n`,
     );
   } finally {
     // 🔒 6. Tutup koneksi SSE stream
@@ -277,7 +282,7 @@ export const getFinancialHealth = async (req: IReqUser, res: Response) => {
 
     const latestData = await FinancialHealthModel.findOne({ user: userId })
       .select(
-        "skorTotal grade disiplinAnggaran pengelolaanPinjaman createdAt updatedAt"
+        "skorTotal grade disiplinAnggaran pengelolaanPinjaman createdAt updatedAt",
       )
       .sort({ updatedAt: -1 });
 
@@ -295,7 +300,9 @@ export const getFinancialHealth = async (req: IReqUser, res: Response) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Gagal mengambil data Financial Health", error: String(error) });
+      .json({
+        message: "Gagal mengambil data Financial Health",
+        error: String(error),
+      });
   }
 };
-
