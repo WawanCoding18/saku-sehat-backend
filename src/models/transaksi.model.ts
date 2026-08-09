@@ -1,3 +1,86 @@
+// import mongoose from "mongoose";
+
+// export interface Transaksi {
+//   user: mongoose.Types.ObjectId;
+//   Catatan_Transaksi: string;
+//   tipe: "pengeluaran" | "pemasukan";
+//   kategori: string;
+//   Sumber_Dana: string;
+//   nominal: number;
+//   tanggal: Date;
+//   createdAt?: string;
+// }
+
+// const TransaksiSchema = new mongoose.Schema<Transaksi>(
+//   {
+//     user: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true,
+//     },
+//     Catatan_Transaksi: {
+//       type: String,
+//       required: true,
+//     },
+//     tipe: {
+//       type: String,
+//       enum: ["pengeluaran", "pemasukan"],
+//       required: true,
+//     },
+//     kategori: {
+//       type: String,
+//       enum: [
+//         "Hiburan",
+//         "Makanan",
+//         "Transportasi",
+//         "Belanja",
+//         "Tagihan",
+//         "Kesehatan",
+//         "Gaji",
+//         "Freelance",
+//         "Part-time",
+//         "Investasi",
+//         "Lainnya",
+//       ],
+//       required: true,
+//     },
+//     Sumber_Dana: {
+//       type: String,
+//       enum: [
+//         "Tunai",
+//         "Gopay",
+//         "DANA",
+//         "ShopeePay",
+//         "Bank Mandiri",
+//         "BSI",
+//         "BRI",
+//         "BTN",
+//         "BSA",
+//         "OVO",
+//         "Lainnya",
+//       ],
+//       required: true,
+//     },
+//     nominal: {
+//       type: Number,
+//       required: true,
+//       min: 0,
+//     },
+//     tanggal: {
+//       type: Date,
+//       required: true,
+//     },
+//   },
+//   {
+//     timestamps: true,
+//   },
+// );
+
+// const TransaksiModel = mongoose.model<Transaksi>("Transaksi", TransaksiSchema);
+
+// export default TransaksiModel;
+
+
 import mongoose from "mongoose";
 
 export interface Transaksi {
@@ -8,6 +91,7 @@ export interface Transaksi {
   Sumber_Dana: string;
   nominal: number;
   tanggal: Date;
+  targetTabungId?: mongoose.Types.ObjectId;
   createdAt?: string;
 }
 
@@ -40,6 +124,7 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
         "Freelance",
         "Part-time",
         "Investasi",
+        "Tabungan", 
         "Lainnya",
       ],
       required: true,
@@ -70,10 +155,15 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
       type: Date,
       required: true,
     },
+    targetTabungId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "targettabung",
+      default: null,
+    },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const TransaksiModel = mongoose.model<Transaksi>("Transaksi", TransaksiSchema);

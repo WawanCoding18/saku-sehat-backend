@@ -1,5 +1,6 @@
 import { Response } from "express";
 import TargetTabungModel from "../models/targetTabung.model";
+import TransaksiModel from "../models/transaksi.model"; // 👈 Ditambahkan untuk relasi otomatis
 import { IReqUser } from "../middlewares/auth.Middleware";
 
 // 📝 1. POST (Tambah Target Tabung Baru)
@@ -114,12 +115,11 @@ export const getAllTargetTabung = async (req: IReqUser, res: Response) => {
   }
 };
 
-// 💰 3. PUT / Setor Tabungan (Setor / Tambah Saldo ke Target)
 export const setorTargetTabung = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
-    const { nominalSetor } = req.body;
+    const { nominalSetor, Sumber_Dana } = req.body; 
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -143,8 +143,19 @@ export const setorTargetTabung = async (req: IReqUser, res: Response) => {
 
     await target.save();
 
+    await TransaksiModel.create({
+      user: userId,
+      Catatan_Transaksi: `Setor Tabungan: ${target.namaTarget}`,
+      tipe: "pengeluaran",
+      kategori: "Tabungan",
+      Sumber_Dana: Sumber_Dana || "Tunai",
+      nominal: setor,
+      tanggal: new Date(),
+      targetTabungId: target._id,
+    });
+
     return res.status(200).json({
-      message: "Berhasil menambah saldo tabungan",
+      message: `Berhasil menyisihkan Rp${setor.toLocaleString('id-ID')} ke ${target.namaTarget}`,
       data: target,
     });
   } catch (error: any) {
@@ -180,6 +191,8 @@ export const editTargetTabung = async (req: IReqUser, res: Response) => {
 
     if (target.terkumpulNominal >= target.targetNominal) {
       target.status = "Tercapai";
+    } else {
+      target.status = "Aktif";
     }
 
     await target.save();
