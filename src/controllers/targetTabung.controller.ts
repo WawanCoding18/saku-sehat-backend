@@ -1,6 +1,6 @@
 import { Response } from "express";
 import TargetTabungModel from "../models/targetTabung.model";
-import TransaksiModel from "../models/transaksi.model"; // 👈 Ditambahkan untuk relasi otomatis
+import TransaksiModel from "../models/transaksi.model";
 import { IReqUser } from "../middlewares/auth.Middleware";
 
 // 📝 1. POST (Tambah Target Tabung Baru)
@@ -115,6 +115,7 @@ export const getAllTargetTabung = async (req: IReqUser, res: Response) => {
   }
 };
 
+// 💰 3. PUT / Setor Tabungan (Update Saldo Tabungan + Otomatis Buat Transaksi Pengeluaran)
 export const setorTargetTabung = async (req: IReqUser, res: Response) => {
   try {
     const { id } = req.params;
@@ -122,7 +123,7 @@ export const setorTargetTabung = async (req: IReqUser, res: Response) => {
     const { nominalSetor, Sumber_Dana } = req.body; 
 
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
     const setor = Number(nominalSetor);
@@ -130,11 +131,13 @@ export const setorTargetTabung = async (req: IReqUser, res: Response) => {
       return res.status(400).json({ message: "Nominal setor harus lebih dari 0" });
     }
 
+    // 1. Cari target tabung
     const target = await TargetTabungModel.findOne({ _id: id, user: userId });
     if (!target) {
       return res.status(404).json({ message: "Target tabung tidak ditemukan" });
     }
 
+    // 2. Update saldo akumulasi target
     target.terkumpulNominal += setor;
 
     if (target.terkumpulNominal >= target.targetNominal) {
@@ -143,6 +146,7 @@ export const setorTargetTabung = async (req: IReqUser, res: Response) => {
 
     await target.save();
 
+    // 3. Otomatis buatkan entri transaksi pengeluaran
     await TransaksiModel.create({
       user: userId,
       Catatan_Transaksi: `Setor Tabungan: ${target.namaTarget}`,
@@ -172,7 +176,7 @@ export const editTargetTabung = async (req: IReqUser, res: Response) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
     const target = await TargetTabungModel.findOne({ _id: id, user: userId });
