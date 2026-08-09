@@ -19,8 +19,7 @@ export interface IUserToken
 
 export const generateToken = (user: IUserToken): string => {
   const token = jwt.sign(user, SECRET, {
-    // Masa berlaku token (1 jam)
-    expiresIn: "1h",
+    expiresIn: "2h",
   });
 
   return token;

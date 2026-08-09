@@ -226,12 +226,9 @@ export default {
           otpCode: null,
           otpExpiresAt: null,
         },
-        { new: true }, // <-- WAJIB: biar hasil update yang ke-return, bukan data lama sebelum update
+        { new: true },
       );
 
-      // Generate token JWT juga di sini, sama seperti di login.
-      // Ini yang bikin FE bisa langsung lanjut ke profile-onboarding
-      // tanpa harus manual login lagi setelah OTP diverifikasi.
       const token = generateToken({
         id: updatedUser!._id,
         role: updatedUser!.role,
