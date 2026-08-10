@@ -125,7 +125,7 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
     kategori: {
       type: String,
       enum: [
-        "Makanan & Minuman",
+        "Makanan",
         "Transportasi",
         "Belanja",
         "Tagihan",

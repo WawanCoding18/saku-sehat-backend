@@ -73,7 +73,7 @@ const BudgetingSchema = new mongoose.Schema<IBudgeting>(
     Kategori_Budget: {
       type: String,
       enum: [
-        "Makanan & Minuman",
+        "Makanan",
         "Transportasi",
         "Belanja",
         "Tagihan",
