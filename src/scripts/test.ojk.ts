@@ -21,13 +21,26 @@ async function askQuestion(): Promise<string> {
 async function seed() {
   console.log("⏳ Menghubungkan ke MongoDB...");
   await connectDB();
-  const userMessage = await askQuestion();
+
+  console.log("🚀 Memulai proses seeding data OJK...");
+
+  await OjkLegalListModel.deleteMany({});
+  console.log("🗑️  Data lama berhasil dibersihkan.");
+
+  if (Array.isArray(OJKData) && OJKData.length > 0) {
+    await OjkLegalListModel.insertMany(OJKData);
+    console.log(`✅ Berhasil menambahkan ${OJKData.length} data OJK ke MongoDB Atlas!`);
+  } else {
+    console.log("⚠️ Data JSON kosong atau format tidak sesuai array.");
+  }
 
   const totalActive = await OjkLegalListModel.countDocuments({
     is_active: true,
   });
 
-  console.log(`📊 Total data aktif: ${totalActive} entitas.`);
+  console.log(`\n📊 Total data aktif di database: ${totalActive} entitas.`);
+
+  const userMessage = await askQuestion();
 
   const samplePlatform = await OjkLegalListModel.findOne({
     platform_name: { $regex: userMessage, $options: "i" },
@@ -45,7 +58,7 @@ async function seed() {
   }
 
   rl.close();
-  console.log("\n🎉 Seluruh proses pengujian selesai!");
+  console.log("\n🎉 Seluruh proses seeding & pengujian selesai!");
   process.exit(0);
 }
 
