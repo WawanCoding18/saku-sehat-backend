@@ -73,7 +73,13 @@ const hitungDisiplinAnggaran = async (userId: string) => {
           totalKategori - kategoriDalamBatas
         } dari ${totalKategori} kategori budget yang sudah melebihi batas. Coba lebih perhatikan pengeluaran di kategori tersebut.`;
 
-  return { skor, maksimal: 34, persentase: Math.round(rasio * 100), status, ringkasan };
+  return {
+    skor,
+    maksimal: 34,
+    persentase: Math.round(rasio * 100),
+    status,
+    ringkasan,
+  };
 };
 
 const hitungPengelolaanPinjaman = async (userId: string) => {
@@ -358,7 +364,8 @@ export const postFinancialHealth = async (req: IReqUser, res: Response) => {
         },
         targetNabung: {
           ...targetNabung,
-          ringkasan: aiResponse?.targetNabung?.ringkasan || targetNabung.ringkasan,
+          ringkasan:
+            aiResponse?.targetNabung?.ringkasan || targetNabung.ringkasan,
           saranPerkembangan: saranTabungan,
         },
       },
@@ -413,11 +420,9 @@ export const getFinancialHealth = async (req: IReqUser, res: Response) => {
       data: latestData,
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        message: "Gagal mengambil data Financial Health",
-        error: String(error),
-      });
+    return res.status(500).json({
+      message: "Gagal mengambil data Financial Health",
+      error: String(error),
+    });
   }
 };

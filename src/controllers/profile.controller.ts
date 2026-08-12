@@ -4,6 +4,30 @@ import { IReqUser } from "../middlewares/auth.Middleware";
 import UserModel  from "../models/user.model";
 
 
+// export const postProfile = async (req: IReqUser, res: Response) => {
+//   try {
+//     const userId = req.user?.id;
+//     console.log("User dari Token:", req.user);
+//     if (!userId) {
+//       return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
+//     }
+
+//     const { fotoProfilUrl ,saldoSekarang, sumberPemasukan, onboardingCompleted } = req.body;
+
+//     const profile = await ProfileModel.findOneAndUpdate({
+//       user: userId,
+//       fotoProfilUrl, 
+//       saldoSekarang: Number(saldoSekarang),
+//       sumberPemasukan,
+//       onboardingCompleted
+//     });
+
+//     return res.status(201).json({ message: "Profile berhasil dibuat", data: profile });
+//   } catch (error) {
+//     return res.status(400).json({ message: "Gagal membuat Profile", error: String(error) });
+//   }
+// };
+
 export const postProfile = async (req: IReqUser, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -12,17 +36,21 @@ export const postProfile = async (req: IReqUser, res: Response) => {
       return res.status(401).json({ message: "Unauthorized: User tidak teridentifikasi" });
     }
 
-    const { fotoProfilUrl ,saldoSekarang, sumberPemasukan, onboardingCompleted } = req.body;
+    const { fotoProfilUrl, saldoSekarang, sumberPemasukan, onboardingCompleted } = req.body;
 
-    const profile = await ProfileModel.create({
-      user: userId,
-      fotoProfilUrl, 
-      saldoSekarang: Number(saldoSekarang),
-      sumberPemasukan,
-      onboardingCompleted
-    });
+    const updateData: Record<string, any> = {};
+    if (fotoProfilUrl !== undefined) updateData.fotoProfilUrl = fotoProfilUrl;
+    if (saldoSekarang !== undefined) updateData.saldoSekarang = Number(saldoSekarang);
+    if (sumberPemasukan !== undefined) updateData.sumberPemasukan = sumberPemasukan;
+    if (onboardingCompleted !== undefined) updateData.onboardingCompleted = onboardingCompleted;
 
-    return res.status(201).json({ message: "Profile berhasil dibuat", data: profile });
+    const profile = await ProfileModel.findOneAndUpdate(
+      { user: userId }, 
+      { $set: updateData }, 
+      { new: true, upsert: true, runValidators: true } 
+    );
+
+    return res.status(200).json({ message: "Profile berhasil disimpan", data: profile });
   } catch (error) {
     return res.status(400).json({ message: "Gagal membuat Profile", error: String(error) });
   }
