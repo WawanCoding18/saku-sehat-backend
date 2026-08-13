@@ -28,11 +28,13 @@ const ProfileSchema = new mongoose.Schema<Profile>(
     sumberPemasukan: {
       type: String,
       enum: [
+        "Gaji",
         "Uang Saku",
         "Part-time",
         "Freelance",
         "Beasiswa",
         "Bisnis Kecil",
+        "Investasi",
         "Lainnya",
       ],
       required: true,
@@ -42,7 +44,7 @@ const ProfileSchema = new mongoose.Schema<Profile>(
       default: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const ProfileModel = mongoose.model<Profile>("Profile", ProfileSchema);

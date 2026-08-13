@@ -41,7 +41,7 @@
 //         "Freelance",
 //         "Part-time",
 //         "Investasi",
-//         "Tabungan", 
+//         "Tabungan",
 //         "Lainnya",
 //       ],
 //       required: true,
@@ -89,9 +89,6 @@
 
 // export default TransaksiModel;
 
-
-
-
 import mongoose from "mongoose";
 
 export interface Transaksi {
@@ -132,11 +129,13 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
         "Kesehatan",
         "Pendidikan",
         "Hiburan",
-        "Tabungan", 
+        "Tabungan",
         "Gaji",
         "Uang Saku",
-        "Freelance",
         "Part-time",
+        "Freelance",
+        "Beasiswa",
+        "Bisnis Kecil",
         "Investasi",
         "Lainnya",
       ],
@@ -176,7 +175,7 @@ const TransaksiSchema = new mongoose.Schema<Transaksi>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const TransaksiModel =
