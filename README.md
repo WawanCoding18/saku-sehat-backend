@@ -2,28 +2,29 @@
 
 ## Deskripsi
 
-Saku Sehat Backend adalah backend API untuk aplikasi finansial yang membantu pengguna mengelola keuangan pribadi dengan lebih terstruktur, aman, dan mudah dipahami. Project ini didesain untuk mendukung berbagai kebutuhan terkait pengelolaan keuangan seperti autentikasi pengguna, pencatatan transaksi, analisis pinjaman, pengaturan budgeting, hingga rekomendasi dan insight finansial berbasis AI.
+Saku Sehat Backend adalah backend API untuk aplikasi finansial yang membantu pengguna mengelola keuangan secara lebih terstruktur, aman, dan mudah dipahami. Project ini dirancang untuk mendukung kebutuhan utama seperti autentikasi pengguna, pencatatan transaksi, pengelolaan pinjaman, target tabungan, budgeting, analisis kesehatan finansial, serta rekomendasi keputusan finansial berbasis AI.
 
-Backend ini dibangun menggunakan Node.js, TypeScript, dan Express.js, serta terhubung ke MongoDB sebagai database utama. Project ini juga menyediakan dokumentasi API otomatis melalui Swagger, integrasi OCR untuk membaca struk transaksi, serta koneksi ke layanan AI seperti Gemini dan Groq untuk menganalisis kondisi keuangan dan kelayakan pinjaman.
+Backend ini dibangun dengan Node.js, TypeScript, dan Express.js, serta menggunakan MongoDB sebagai database utama. Project ini juga menyediakan dokumentasi API otomatis melalui Swagger, integrasi OCR untuk membaca struk transaksi, dan koneksi ke layanan AI seperti Gemini dan Groq untuk menganalisis kondisi keuangan dan kelayakan pinjaman.
 
-Secara umum, project ini berfungsi sebagai layanan backend untuk aplikasi Saku Sehat yang mendukung pengalaman pengguna dalam mengelola pendapatan, pengeluaran, target tabungan, pengajuan pinjaman, dan evaluasi kesehatan finansial secara digital.
+Project ini berperan sebagai layer backend utama untuk aplikasi Saku Sehat, yang mendukung pengalaman pengguna dalam mengelola pendapatan, pengeluaran, target menabung, pinjaman, dan evaluasi kesehatan finansial secara digital.
 
 ## Key Features
 
-- Autentikasi pengguna lengkap dengan JWT untuk register, login, logout, verifikasi OTP, dan resend OTP.
+- Autentikasi lengkap pengguna dengan JWT untuk register, login, logout, verify OTP, dan resend OTP.
 - Pengelolaan profil pengguna melalui onboarding, melihat data profil, dan update profil.
 - CRUD transaksi keuangan untuk mencatat pemasukan dan pengeluaran.
-- OCR upload gambar untuk membaca data dari struk atau catatan transaksi menggunakan layanan OCR.
-- Manajemen pinjaman dengan fitur tambah, lihat, bayar, edit, dan hapus pinjaman.
-- Target tabungan untuk mengelola rencana menabung sesuai target tertentu.
-- Fitur budgeting untuk membatasi pengeluaran berdasarkan kategori dan kebutuhan.
-- Kalkulator bunga dan simulasi pinjaman untuk perencanaan keuangan.
-- Fitur before you borrow untuk menilai ide atau kebutuhan pinjaman sebelum mengambil keputusan.
-- Fitur cari aman untuk mengevaluasi kondisi dan risiko finansial secara lebih hati-hati.
-- Analisis financial health untuk mendapatkan gambaran kondisi kesehatan keuangan pengguna.
-- Dashboard finansial yang berisi ringkasan kondisi finansial pengguna.
-- Dokumentasi API yang mudah diakses melalui Swagger UI.
-- Integrasi AI serta OCR untuk memberikan insight yang lebih relevan kepada pengguna.
+- OCR pada gambar struk atau catatan transaksi dengan bantuan PaddleOCR.
+- Manajemen pinjaman mulai dari tambah, lihat, bayar, edit, hingga hapus pinjaman.
+- Fitur target tabungan untuk mengelola rencana menabung berdasarkan target tertentu.
+- Fitur budgeting untuk membatasi alokasi pengeluaran berdasarkan kategori kebutuhan.
+- Kalkulator bunga dan simulasi pinjaman untuk analisis keputusan finansial.
+- Fitur before you borrow untuk menilai apakah kebutuhan pinjaman masuk akal sebelum mengambil keputusan.
+- Fitur cari aman untuk mengevaluasi risiko finansial dan keamanan keputusan investasi atau pinjaman.
+- Analisis financial health untuk melihat kondisi kesehatan keuangan pengguna secara komprehensif.
+- Dashboard finansial berisi ringkasan data keuangan pengguna.
+- Dokumentasi API otomatis melalui Swagger UI.
+- Integrasi AI untuk memberikan insight dan rekomendasi finansial berdasarkan konteks pengguna.
+- Middleware autentikasi dan upload file untuk menjaga keamanan dan kelancaran proses data.
 
 ## Preview
 
@@ -64,9 +65,9 @@ Validasi:
 
 - fullName wajib diisi.
 - username wajib diisi.
-- email harus valid format email.
+- email harus format email yang valid.
 - password minimal 6 karakter.
-- password harus mengandung minimal satu huruf kapital dan satu angka.
+- password harus memiliki minimal 1 huruf kapital dan 1 angka.
 - confirmPassword harus sama dengan password.
 
 ### 2. Login User
@@ -98,7 +99,7 @@ Contoh response:
 Validasi:
 
 - identifier dan password wajib diisi.
-- token JWT akan dikirimkan jika kredensial valid.
+- JWT token akan dikirim jika kredensial valid.
 
 ### 3. Create Transaction
 
@@ -146,10 +147,10 @@ Contoh response:
 Validasi:
 
 - tipe harus bernilai pengeluaran atau pemasukan.
-- nominal harus berupa angka dan wajib diisi.
-- tanggal bersifat opsional; jika tidak dikirim, maka akan otomatis menggunakan tanggal saat ini.
+- nominal wajib diisi dan harus berupa angka.
+- tanggal bersifat opsional; jika tidak dikirim, sistem otomatis memakai tanggal saat ini.
 
-### 4. Upload OCR untuk Struk
+### 4. OCR Upload untuk Struk
 
 Endpoint:
 
@@ -190,18 +191,122 @@ Contoh response:
 Validasi:
 
 - file gambar wajib dikirim.
-- format file harus sesuai dengan file yang didukung oleh middleware upload.
-- user harus terautentikasi melalui token JWT.
+- format file harus sesuai dengan upload middleware.
+- user harus terautentikasi melalui JWT.
 
-### 5. Dokumentasi API
+### 5. PaddleOCR Integration (Modal.com)
 
-Swagger UI tersedia pada endpoint berikut:
+OCR pada project ini dipanggil dari layanan PaddleOCR yang di-deploy di Modal.com. Implementasi lengkapnya ada di [src/services/ocr.services.ts](src/services/ocr.services.ts).
+
+#### Endpoint
+
+```http
+POST https://wawancoding18--paddleocr-fastapi-service-fastapi-app.modal.run/ocr
+```
+
+Atau melalui environment variable:
+
+```env
+MODAL_OCR_URL=https://wawancoding18--paddleocr-fastapi-service-fastapi-app.modal.run/ocr
+```
+
+#### Cara pemanggilan dari backend
+
+Kode backend melakukan proses berikut:
+
+1. menerima file image dari request upload
+2. resize menggunakan `sharp`
+3. konversi ke `image/jpeg`
+4. kirim via `multipart/form-data` dengan field `file`
+5. menunggu response JSON dari service OCR
+
+Contoh implementasi:
+
+```ts
+const formData = new FormData();
+formData.append("file", resizedBuffer, {
+  filename: originalName.replace(/\.[^/.]+$/, "") + ".jpg",
+  contentType: "image/jpeg",
+});
+
+const response = await axios.post<PaddleOCRResponse>(PADDLE_OCR_URL, formData, {
+  headers: {
+    ...formData.getHeaders(),
+  },
+  timeout: 120000,
+  maxBodyLength: Infinity,
+  maxContentLength: Infinity,
+});
+```
+
+#### Contoh request dengan curl
+
+```bash
+curl -X POST "https://wawancoding18--paddleocr-fastapi-service-fastapi-app.modal.run/ocr" \
+  -F "file=@/path/to/receipt.jpg"
+```
+
+#### Contoh response
+
+```json
+{
+  "result": [
+    {
+      "box": [
+        [10, 20],
+        [120, 20],
+        [120, 40],
+        [10, 40]
+      ],
+      "text": "Total",
+      "confidence": 0.98
+    },
+    {
+      "box": [
+        [120, 20],
+        [220, 20],
+        [220, 40],
+        [120, 40]
+      ],
+      "text": "50000",
+      "confidence": 0.95
+    }
+  ],
+  "processing_time_ms": 742.11
+}
+```
+
+#### Struktur response yang digunakan backend
+
+```ts
+export interface OCRItem {
+  box: number[][];
+  text: string;
+  confidence: number;
+}
+
+export interface PaddleOCRResponse {
+  result: OCRItem[];
+  processing_time_ms?: number;
+}
+```
+
+#### Catatan teknis
+
+- file dikirim dengan field name `file`
+- backend otomatis resize image ke `1024x1024` dan konversi ke JPEG agar kompatibel untuk OCR
+- request timeout diatur `120000` ms
+- jika service gagal, backend akan melempar error: `Failed to process image with PaddleOCR microservice.`
+
+### 6. Swagger Documentation
+
+Endpoint:
 
 ```http
 GET /api-docs
 ```
 
-Dokumentasi ini menampilkan semua endpoint yang tersedia beserta parameter, request body, dan response yang dipublikasikan oleh backend.
+Swagger UI menampilkan endpoint API, parameter, request body, dan struktur response yang dapat dipelajari langsung dari browser.
 
 ## Project Structure
 
@@ -214,35 +319,34 @@ back-end-acara/
 ├─ tsconfig.json            # Konfigurasi TypeScript
 ├─ vercel.json              # Konfigurasi deployment Vercel
 ├─ README.md                # Dokumentasi project
+├─ LICENSE.md               # Lisensi project
 ├─ src/
 │  ├─ index.ts              # Entry point server Express
-│  ├─ controllers/          # Logika bisnis setiap endpoint
-│  ├─ middlewares/          # Middleware autentikasi, upload, dll
+│  ├─ controllers/          # Logika bisnis endpoint
+│  ├─ middlewares/          # Middleware autentikasi, upload, dan keamanan
 │  ├─ models/               # Schema dan model MongoDB
-│  ├─ routes/               # Routing API
+│  ├─ routes/               # Routing API backend
 │  ├─ services/             # Integrasi AI, OCR, dan layanan eksternal
-│  ├─ utils/                # Helper database, env, encryption, JWT, dsb
-│  ├─ docs/                 # Konfigurasi Swagger
+│  ├─ utils/                # Helper env, DB, JWT, mail, encryption, dsb
+│  ├─ docs/                 # Konfigurasi Swagger dan output dokumentasi
 │  ├─ prompts/              # Prompt dan knowledge base AI
 │  └─ scripts/              # Script eksperimen / logic testing
-├─ LICENSE.md               # Lisensi project
-├─ eng.traineddata          # Data model Tesseract untuk bahasa Inggris
-├─ ind.traineddata          # Data model Tesseract untuk bahasa Indonesia
-└─ node_modules/            # Dependency hasil install
+├─ node_modules/            # Dependency hasil install
+└─ .gitignore               # File yang diabaikan Git
 ```
 
 Penjelasan folder penting:
 
-- src/index.ts: file utama yang menjalankan aplikasi Express dan mendefinisikan middleware global seperti CORS dan JSON parser.
-- src/routes/api.ts: berisi seluruh route API yang dibagi ke fitur seperti auth, transaksi, pinjaman, budgeting, target tabungan, AI analysis, dan dashboard.
-- src/controllers: berisi logic bisnis dan response handler dari setiap endpoint.
-- src/models: tempat definisi schema MongoDB untuk user, transaksi, pinjaman, profil, budgeting, target tabungan, dan fitur lainnya.
-- src/services: berisi integrasi layanan AI (Gemini/Groq), OCR, dan fungsi pendukung lainnya.
-- src/middlewares: berisi autentikasi, upload file, serta middleware keamanan lain.
-- src/utils: helper seperti database connection, env, JWT, mail, dan encryption.
-- src/docs: berisi konfigurasi Swagger dan dokumentasi API.
-- src/prompts: berisi prompt dan knowledge base AI untuk fitur Before You Borrow, Financial Health, dan Kalkulator Bunga.
-- src/scripts: script untuk testing logika atau eksperimen pengembangan.
+- src/index.ts: file utama yang menjalankan server Express dan mengaktifkan middleware global seperti CORS dan JSON parser.
+- src/routes/api.ts: berisi seluruh route API yang dikelompokkan berdasarkan fitur seperti auth, transaksi, pinjaman, budgeting, target tabungan, AI, dan dashboard.
+- src/controllers: berisi logic bisnis dan handler response setiap endpoint.
+- src/models: berisi definisi schema database MongoDB untuk user, transaksi, profil, pinjaman, target tabungan, budgeting, dan fitur lainnya.
+- src/services: menyimpan integrasi AI (Gemini/Groq), OCR PaddleOCR, serta layanan eksternal lain.
+- src/middlewares: memuat autentikasi, upload file, dan middleware keamanan.
+- src/utils: berisi konfigurasi database, environment, JWT, email, encrypt/decrypt, serta helper pendukung.
+- src/docs: berisi konfigurasi Swagger dan file hasil generate documentation.
+- src/prompts: berisi prompt dan knowledge base untuk fitur Before You Borrow, Financial Health, dan Kalkulator Bunga.
+- src/scripts: digunakan untuk eksperimen logika, pengujian, atau validasi fitur tertentu.
 
 ## Tech Stack
 
@@ -255,26 +359,27 @@ Teknologi utama yang digunakan pada project ini adalah:
 - JWT (JSON Web Token)
 - Swagger UI dan Swagger Autogen
 - Multer untuk upload file
-- Tesseract.js untuk OCR
+- PaddleOCR untuk proses OCR dari gambar struk
 - Google Gemini AI dan Groq AI
-- Nodemailer untuk mengirim OTP/email notifikasi
-- dotenv untuk lingkungan konfigurasi
-- CORS untuk konfigurasi cross-origin
+- Nodemailer untuk pengiriman OTP dan email notifikasi
+- Sharp untuk preprocess image sebelum OCR
+- Axios dan FormData untuk komunikasi ke service OCR eksternal
 - Yup dan Zod untuk validasi data
-- Axios untuk request HTTP ke service eksternal
 
 ## Local Setup
 
 ### Prerequisites
 
-Sebelum menjalankan project ini di local, pastikan komputer atau environment Anda sudah memiliki beberapa hal berikut:
+Sebelum menjalankan project ini di local, siapkan hal berikut:
 
-- Node.js versi 22.x atau yang kompatibel
-- npm atau pnpm sebagai package manager
-- MongoDB instance aktif, bisa lokal atau cloud (MongoDB Atlas)
-- Akun email valid untuk fitur OTP, bila ingin menggunakan email notifikasi
-- Kunci API dari layanan AI seperti Gemini API dan Groq API
-- Git untuk proses clone repository
+- Node.js versi 22.x
+- npm atau pnpm
+- Git
+- Database MongoDB (baik local maupun MongoDB Atlas)
+- Akun API Google Gemini
+- Akun API Groq
+- Email Gmail SMTP untuk OTP dan notifikasi email
+- Service OCR PaddleOCR yang tersedia (bisa via endpoint Modal / service lain)
 
 ### 1. Clone Repository
 
@@ -289,245 +394,128 @@ cd back-end-acara
 npm install
 ```
 
-### 3. Konfigurasi Environment Variables
+### 3. Setup Environment Variables
 
-Buat file .env di root project dan isi variabel berikut:
+Buat file `.env` di root project dan isi dengan konfigurasi berikut:
 
 ```env
-DATABASE_URL=mongodb+srv://<username>:<password>@<cluster-url>/db-saku-sehat
-SECRET=<jwt-secret-key>
-EMAIL_FROM=<alamat-email-pengirim>
-EMAIL_APP_PASSWORD=<password-app-email>
-GEMINI_API_KEY=<api-key-gemini>
-GROQ_API_KEY=<api-key-groq>
-MODAL_OCR_URL=<url-ocr-service>
+DATABASE_URL=mongodb://localhost:27017/saku-sehat
+SECRET=your_jwt_secret_key
+EMAIL_FROM=your_email@gmail.com
+EMAIL_APP_PASSWORD=your_gmail_app_password
 CLIENT_HOST=http://localhost:3000
+GEMINI_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
+MODAL_OCR_URL=https://your-paddleocr-service-url/ocr
 ```
 
-Catatan:
+Penjelasan variabel:
 
-- DATABASE_URL adalah koneksi MongoDB utama yang dipakai project.
-- SECRET digunakan untuk menandatangani JWT.
-- EMAIL_FROM dan EMAIL_APP_PASSWORD digunakan untuk mengirim OTP atau email notifikasi.
-- GEMINI_API_KEY dan GROQ_API_KEY dibutuhkan jika fitur AI aktif.
-- MODAL_OCR_URL digunakan untuk proses OCR dari file gambar.
+- DATABASE_URL: koneksi MongoDB yang dipakai aplikasi.
+- SECRET: secret key untuk JWT.
+- EMAIL_FROM: alamat email pengirim untuk OTP dan notifikasi.
+- EMAIL_APP_PASSWORD: password aplikasi Gmail (bukan password akun utama).
+- CLIENT_HOST: host frontend yang akan menerima redirect/auth flow.
+- GEMINI_API_KEY: API key model Gemini.
+- GROQ_API_KEY: API key model Groq.
+- MODAL_OCR_URL: endpoint PaddleOCR service untuk proses OCR gambar.
 
-### 4. Generate Swagger Documentation (Opsional)
+### 4. Generate Swagger Docs (opsional)
 
-Jika ingin memperbarui dokumentasi Swagger secara manual:
+Jika ingin memperbarui file dokumentasi Swagger:
 
 ```bash
 npm run docs
 ```
 
-### 5. Jalankan Server Local
+### 5. Run Project Locally
 
-Untuk menjalankan project di local:
+Mode development:
 
 ```bash
 npm run dev
 ```
 
-Setelah server berjalan, aplikasi akan tersedia pada:
+Server akan berjalan pada port default:
 
 ```text
 http://localhost:4000
 ```
 
-Swagger UI akan tersedia pada:
-
-```text
-http://localhost:4000/api-docs
-```
-
-### 6. Build Project untuk Production
+Untuk build production:
 
 ```bash
 npm run build
+npm run start
 ```
 
-### 7. Jalankan Production Build
+### 6. Cek Health Endpoint
 
-```bash
-npm start
+Buka URL berikut di browser atau Postman:
+
+```http
+GET http://localhost:4000/
+```
+
+Contoh response:
+
+```json
+{
+  "message": "Server running",
+  "data": null
+}
 ```
 
 ## Documentation
 
-Berikut beberapa dokumentasi resmi yang relevan dengan stack yang digunakan:
+Berikut dokumentasi resmi dari teknologi yang dipakai di project ini:
 
-- Node.js: https://nodejs.org/docs
+- Node.js: https://nodejs.org/docs/
 - TypeScript: https://www.typescriptlang.org/docs/
 - Express.js: https://expressjs.com/
 - MongoDB: https://www.mongodb.com/docs/
 - Mongoose: https://mongoosejs.com/docs/
 - Swagger: https://swagger.io/docs/
+- Multer: https://github.com/expressjs/multer
 - JWT: https://jwt.io/introduction
-- Tesseract.js: https://tesseract.projectnaptha.com/
 - Google Gemini API: https://ai.google.dev/gemini-api/docs
 - Groq: https://console.groq.com/docs
-- Nodemailer: https://nodemailer.com/usage/
+- PaddleOCR: https://github.com/PaddlePaddle/PaddleOCR
+- Modal.com: https://modal.com/docs
+- Sharp: https://sharp.pixelplumbing.com/
 
 ## Commit Format Standards
 
-Repository ini menggunakan standar commit message yang sederhana dan konsisten agar riwayat perubahan mudah dipahami. Format yang disarankan adalah:
+Repo ini mengikuti standar Conventional Commits untuk menjaga konsistensi commit message.
 
-```text
+Format umum:
+
+```bash
 <type>(<scope>): <subject>
-```
-
-Keterangan:
-
-- type: jenis perubahan, contoh: feat, fix, chore, docs, refactor, perf, test
-- scope: area kerja yang terdampak, contoh: auth, transaksi, api, docs, db
-- subject: deskripsi singkat perubahan dalam bentuk imperative sentence
-
-Contoh commit message yang valid:
-
-```bash
-git commit -m "feat(auth): add user registration and OTP verification"
-```
-
-```bash
-git commit -m "fix(transaksi): correct nominal validation on expense records"
-```
-
-```bash
-git commit -m "docs(readme): update project documentation and setup guide"
-```
-
-```bash
-git commit -m "refactor(api): simplify route grouping for financial features"
-```
-
-### Recommended Type List
-
-- feat: menambahkan fitur baru
-- fix: memperbaiki bug
-- docs: perubahan dokumentasi
-- chore: tugas maintenance non-fungsional
-- refactor: perbaikan struktur kode tanpa mengubah perilaku
-- perf: peningkatan performa
-- test: menambahkan atau memperbaiki test
-
-Dengan mengikuti format ini, commit history akan lebih rapi, mudah dibaca, dan lebih mudah dikelola saat kolaborasi tim.
-
----
-
-Project ini dirancang sebagai backend layanan finansial yang membantu pengguna mengelola keuangan pribadi dengan lebih mudah, terstruktur, dan aman. Anda dapat memanfaatkan API ini untuk membangun aplikasi front-end, dashboard, atau produk finansial lainnya yang terhubung ke sistem backend yang sama.
-
-- Node.js versi 22.x
-- npm atau yarn
-- MongoDB lokal atau akun MongoDB Atlas
-- Akun email SMTP untuk fitur OTP
-- API key Gemini dan Groq untuk fitur AI
-- Git (opsional, untuk clone repository)
-
-### Langkah-langkah Setup
-
-1. Clone repository
-
-```bash
-git clone <repository-url>
-cd back-end-acara
-```
-
-2. Install dependencies
-
-```bash
-npm install
-```
-
-3. Buat file .env di root project
-
-```env
-DATABASE_URL=mongodb://localhost:27017/back-end-acara
-SECRET=your_jwt_secret
-EMAIL_FROM=your_email@gmail.com
-EMAIL_APP_PASSWORD=your_app_password
-CLIENT_HOST=http://localhost:3000
-GEMINI_API_KEY=your_gemini_api_key
-GROQ_API_KEY=your_groq_api_key
-MODAL_OCR_URL=https://your-ocr-service-url
-```
-
-Keterangan variabel:
-
-- DATABASE_URL: URL koneksi MongoDB.
-- SECRET: kunci rahasia untuk JWT.
-- EMAIL_FROM dan EMAIL_APP_PASSWORD: kredensial SMTP untuk OTP email.
-- CLIENT_HOST: URL frontend yang akan digunakan untuk redirect tertentu.
-- GEMINI_API_KEY dan GROQ_API_KEY: API key untuk fitur AI.
-- MODAL_OCR_URL: URL layanan OCR opsional yang digunakan oleh service OCR.
-
-4. Jalankan aplikasi dalam mode development
-
-```bash
-npm run dev
-```
-
-Server akan berjalan di:
-
-```text
-http://localhost:4000
-```
-
-5. Akses dokumentasi API
-
-```text
-http://localhost:4000/api-docs
-```
-
-### Build untuk production
-
-```bash
-npm run build
-npm start
-```
-
-## Documentation
-
-Dokumentasi resmi dari teknologi yang digunakan:
-
-- Express.js: https://expressjs.com/
-- TypeScript: https://www.typescriptlang.org/
-- MongoDB: https://www.mongodb.com/
-- Mongoose: https://mongoosejs.com/
-- JWT: https://jwt.io/
-- Swagger: https://swagger.io/
-- Nodemailer: https://nodemailer.com/
-- Tesseract.js: https://tesseract.projectnaptha.com/
-- Gemini AI: https://ai.google.dev/
-- Groq: https://console.groq.com/docs
-
-## Commit Format Standards
-
-Repository ini disarankan menggunakan standar Conventional Commits agar riwayat perubahan lebih rapi dan mudah dipahami.
-
-Format commit:
-
-```text
-type(scope): subject
 ```
 
 Contoh type yang umum digunakan:
 
 - feat: menambahkan fitur baru
 - fix: memperbaiki bug
-- docs: perubahan dokumentasi
-- refactor: perbaikan struktur kode tanpa mengubah behavior
-- chore: tugas pemeliharaan seperti update dependency
+- docs: update dokumentasi
+- chore: pekerjaan maintenance / setup / dependencies
+- refactor: refactor kode tanpa mengubah behavior
+- perf: optimasi performa
+- test: menambahkan atau memperbaiki test
 
 Contoh commit message:
 
-```text
-feat(auth): tambahkan endpoint register dan login
+```bash
+feat(auth): add OTP verification flow
+fix(ocr): improve PaddleOCR integration flow
+docs(readme): update project setup and API overview
+chore: update dependencies for Node 22 support
+refactor(routes): simplify transaction endpoint grouping
 ```
 
-```text
-fix(transactions): perbaiki validasi nominal transaksi
-```
+Aturan penting:
 
-```text
-docs(readme): perbarui panduan setup lokal
-```
+- Subject harus singkat, jelas, dan menggambarkan perubahan utama.
+- Gunakan bahasa Inggris untuk konsistensi commit message.
+- Hindari commit message yang terlalu umum seperti "update" atau "fix bug" tanpa konteks.
