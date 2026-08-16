@@ -14,6 +14,13 @@ interface IAIResult {
   };
 }
 
+const parseAngka = (value: unknown): number => {
+  if (value === undefined || value === null || value === "") return NaN;
+  const cleaned = String(value).replace(/\./g, "").replace(/,/g, ".");
+  return Number(cleaned);
+};
+
+
 export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
@@ -32,10 +39,10 @@ export const postBeforeYouBorrow = async (req: IReqUser, res: Response) => {
     Nominal_Pinjaman_Saat_Ini,
   } = req.body || {};
 
-  const jumlahPinjaman = Number(Jumlah_Pinjaman);
-  const pemasukan = Number(Pemasukan_PerBulan);
-  const pengeluaran = Number(Pengeluaran_PerBulan);
-  const pinjamanSaatIni = Number(Nominal_Pinjaman_Saat_Ini) || 0;
+  const jumlahPinjaman = parseAngka(Jumlah_Pinjaman);
+  const pemasukan = parseAngka(Pemasukan_PerBulan);
+  const pengeluaran = parseAngka(Pengeluaran_PerBulan);
+  const pinjamanSaatIni = parseAngka(Nominal_Pinjaman_Saat_Ini) || 0;
 
   if (!Nama_Platform) {
     return res.status(400).json({ message: "Nama Platform wajib diisi" });

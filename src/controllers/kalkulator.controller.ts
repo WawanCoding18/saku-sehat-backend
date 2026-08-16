@@ -8,6 +8,12 @@ interface IAIResult {
   analisisAI: string;
 }
 
+const parseAngka = (value: unknown): number => {
+  if (value === undefined || value === null || value === "") return NaN;
+  const cleaned = String(value).replace(/\./g, "").replace(/,/g, ".");
+  return Number(cleaned);
+};
+
 //Hitung & simpan Simulasi Kalkulator Bunga
 export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
   const userId = req.user?.id;
@@ -24,11 +30,11 @@ export const postKalkulatorBunga = async (req: IReqUser, res: Response) => {
     dendaPerHari,
     deadlineTarget,
   } = req.body;
-
-  const pokok = Number(jumlahPinjaman);
-  const bunga = Number(bungaPerBulan);
-  const tenor = Number(tenorCicilan);
-  const denda = Number(dendaPerHari) || 0;
+  
+  const pokok = parseAngka(jumlahPinjaman);
+  const bunga = parseAngka(bungaPerBulan);
+  const tenor = parseAngka(tenorCicilan);
+  const denda = dendaPerHari != undefined? parseAngka(dendaPerHari) || 0 : 0;
 
   if (!pokok || pokok <= 0) {
     return res

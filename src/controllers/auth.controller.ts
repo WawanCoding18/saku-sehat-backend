@@ -78,8 +78,12 @@ export default {
           data: null,
         });
       }
-
-      const { fullName, username, email, password, confirmPassword } = body;
+      
+      const fullName = body.fullName?.trim();
+      const username = body.username?.trim();
+      const email = body.email?.trim();
+      const password = body.password?.trim();
+      const confirmPassword = body.confirmPassword?.trim();
 
       //Validasi input dengan Yup
       await registerSchema.validate({
@@ -323,7 +327,11 @@ export default {
     try {
       await connect();
 
-      const { identifier, password } = req.body as unknown as TyLogin;
+      const rawBody = req.body as unknown as TyLogin;
+
+      const identifier = rawBody.identifier?.trim();
+      const password = rawBody.password?.trim();
+
       if (!identifier || !password) {
         return res.status(400).json({
           message: "Identifier and password are required",
